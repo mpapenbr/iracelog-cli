@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+
+    # Auto assign PRs raised to this account on Github
+    assignees:
+      - "mpapenbr"
+
+    reviewers:
+      - "mpapenbr"
+
+    # Check for updates to dependencies once a week - Saturday
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+
+  - package-ecosystem: github-actions
+    directory: /
+    labels:
+      - build
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        dependency-type: "production"
+    commit-message:
+      prefix: "gha"
+      include: "scope"
+

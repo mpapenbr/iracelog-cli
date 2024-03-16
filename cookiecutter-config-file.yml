@@ -1,0 +1,15 @@
+# This project was generated using a Cookiecutter template:
+#       https://github.com/notsatan/go-template
+
+cookiecutter_inputs:
+  project_name: "iracelog-cli"
+  go_module_path: "github.com/mpapenbr/iracelog-cli"
+  license_owner: "Markus Papenbrock"
+  base_branch: "main"
+  contact_email: ""
+  project_description: "Command line interface for iRacelog"
+  github_specific_features: "y"
+  use_codecov: "n"
+  use_precommit: "n"
+  go_version: "1.22"
+  license: "MIT"
