@@ -20,3 +20,4 @@ dist/**
 # Ignore private dotfiles
 .gitconfig.local*
 .npmrc
+.iracelog-cli.yml

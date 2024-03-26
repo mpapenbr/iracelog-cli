@@ -13,6 +13,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/mpapenbr/iracelog-cli/cmd/event"
+	"github.com/mpapenbr/iracelog-cli/cmd/provider"
+	"github.com/mpapenbr/iracelog-cli/config"
 	"github.com/mpapenbr/iracelog-cli/version"
 )
 
@@ -49,10 +52,11 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.iracelog-cli.yml)")
+	rootCmd.PersistentFlags().StringVarP(&config.DefaultCliArgs().Addr,
+		"addr", "a", "localhost:8080", "ISM gRPC address")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(event.NewEventCmd())
+	rootCmd.AddCommand(provider.NewProviderCmd())
 
 	// add commands here
 	// e.g. rootCmd.AddCommand(sampleCmd.NewSampleCmd())
