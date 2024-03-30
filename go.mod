@@ -3,7 +3,7 @@ module github.com/mpapenbr/iracelog-cli
 go 1.22
 
 require (
-	buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240326105252-df09b1c4328e.2
+	buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240328223601-775253b8ef58.2
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
