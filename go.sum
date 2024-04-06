@@ -1,6 +1,6 @@
-buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240326105252-df09b1c4328e.2 h1:IGMMjtyNBL36s7xq2srRRuyDpc75IA7jvPCBuQA8rPw=
-buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240326105252-df09b1c4328e.2/go.mod h1:MRAc30GtPf0s+fJ0dP0kQkI8I41OiktcBCqFwb61fgs=
-buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.28.1-20240326105252-df09b1c4328e.4/go.mod h1:W6hrBf7JddzMAC63MWAY/Ro4efwGGJ21qZCI0B3ASqQ=
+buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240404071805-a4ef346acb06.2 h1:zAEsTXXbbjgazIRYcziGCl849aomqGi/I0B0MOuRvh4=
+buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240404071805-a4ef346acb06.2/go.mod h1:h3nMhFU5xBwA4s4JNElR50YnzmibZcgTghw9TsEKWu8=
+buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.28.1-20240404071805-a4ef346acb06.4/go.mod h1:W6hrBf7JddzMAC63MWAY/Ro4efwGGJ21qZCI0B3ASqQ=
 buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240326105252-df09b1c4328e.1 h1:OxeAh7M/AY3NLV4ajHUQvIcLhhsMNn/35FE9l99BtQw=
 buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240326105252-df09b1c4328e.1/go.mod h1:1WUYP1QuOWvlFm0xgsh0nAHM5AZPX2uHba8qiNCx5MI=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
