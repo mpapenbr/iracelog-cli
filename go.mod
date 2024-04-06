@@ -14,7 +14,7 @@ require (
 require github.com/google/uuid v1.6.0
 
 require (
-	buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240326105252-df09b1c4328e.1
+	buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240404104327-2e7f18cb1a0c.1
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
