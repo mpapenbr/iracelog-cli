@@ -1,8 +1,9 @@
 buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240326105252-df09b1c4328e.2 h1:IGMMjtyNBL36s7xq2srRRuyDpc75IA7jvPCBuQA8rPw=
 buf.build/gen/go/mpapenbr/testrepo/grpc/go v1.3.0-20240326105252-df09b1c4328e.2/go.mod h1:MRAc30GtPf0s+fJ0dP0kQkI8I41OiktcBCqFwb61fgs=
 buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.28.1-20240326105252-df09b1c4328e.4/go.mod h1:W6hrBf7JddzMAC63MWAY/Ro4efwGGJ21qZCI0B3ASqQ=
-buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240326105252-df09b1c4328e.1 h1:OxeAh7M/AY3NLV4ajHUQvIcLhhsMNn/35FE9l99BtQw=
-buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.33.0-20240326105252-df09b1c4328e.1/go.mod h1:1WUYP1QuOWvlFm0xgsh0nAHM5AZPX2uHba8qiNCx5MI=
+buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.34.1-20240512090908-b86cbafced44.1 h1:gMaDG/1txTt6kICIjV6ZzEB9O9EfSlpeNlHeCiKBnKU=
+buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go v1.34.1-20240512090908-b86cbafced44.1/go.mod h1:HxQ3PIxtvhyT+nJ+gvlkc0U8Rm/7LakWTH1NwQyv7UQ=
+buf.build/gen/go/protocolbuffers/wellknowntypes/protocolbuffers/go v1.34.1-20240313220449-3186086b2a8e.1/go.mod h1:dqLDqTqSwZ1fKJqQRrWjryyHdhLsRaXc0pQgKa5TJ+E=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -1160,8 +1161,8 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.28.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 google.golang.org/protobuf v1.28.1/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
-google.golang.org/protobuf v1.33.0 h1:uNO2rsAINq/JlFpSdYEKIZ0uKD/R9cpdv0T+yoGwGmI=
-google.golang.org/protobuf v1.33.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
+google.golang.org/protobuf v1.34.1 h1:9ddQBjfCyZPOHPUiPxpYESBLc+T8P3E+Vo4IbKZgFWg=
+google.golang.org/protobuf v1.34.1/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=
