@@ -2,11 +2,9 @@ package list
 
 import (
 	"context"
-	"errors"
-	"io"
 
-	providerv1grpc "buf.build/gen/go/mpapenbr/testrepo/grpc/go/testrepo/provider/v1/providerv1grpc"
-	providerv1 "buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go/testrepo/provider/v1"
+	providerv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/provider/v1/providerv1grpc"
+	providerv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/provider/v1"
 	"github.com/spf13/cobra"
 
 	"github.com/mpapenbr/iracelog-cli/config"
@@ -18,9 +16,7 @@ func NewProviderListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "lists current data provider.",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listEvents()
 		},
@@ -30,7 +26,7 @@ func NewProviderListCmd() *cobra.Command {
 
 func listEvents() error {
 	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
-	conn, err := util.ConnectGRPC(config.DefaultCliArgs().Addr)
+	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 		return err
@@ -44,17 +40,8 @@ func listEvents() error {
 		return err
 	}
 
-	for {
-		resp, err := r.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			log.Error("error fetching events", log.ErrorField(err))
-			break
-		} else {
-			log.Debug("got event: ", log.Any("event", resp))
-		}
+	for i := range r.Events {
+		log.Debug("got event: ", log.Any("event", r.Events[i]))
 	}
 	return nil
 }

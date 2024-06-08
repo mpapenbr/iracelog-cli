@@ -3,6 +3,7 @@ package event
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/mpapenbr/iracelog-cli/cmd/event/deleteit"
 	"github.com/mpapenbr/iracelog-cli/cmd/event/list"
 )
 
@@ -17,5 +18,6 @@ func NewEventCmd() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(list.NewEventListCmd())
+	cmd.AddCommand(deleteit.NewEventDeleteCmd())
 	return cmd
 }
