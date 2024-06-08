@@ -14,8 +14,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mpapenbr/iracelog-cli/cmd/event"
+	"github.com/mpapenbr/iracelog-cli/cmd/live"
 	"github.com/mpapenbr/iracelog-cli/cmd/provider"
 	"github.com/mpapenbr/iracelog-cli/config"
+	"github.com/mpapenbr/iracelog-cli/util"
 	"github.com/mpapenbr/iracelog-cli/version"
 )
 
@@ -29,6 +31,9 @@ var rootCmd = &cobra.Command{
 	Short:   "Command line interface for iRacelog",
 	Long:    ``,
 	Version: version.FullVersion,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		util.SetupLogger(config.DefaultCliArgs())
+	},
 
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -54,9 +59,21 @@ func init() {
 		"config file (default is $HOME/.iracelog-cli.yml)")
 	rootCmd.PersistentFlags().StringVarP(&config.DefaultCliArgs().Addr,
 		"addr", "a", "localhost:8080", "ISM gRPC address")
+	rootCmd.PersistentFlags().BoolVar(&config.DefaultCliArgs().Insecure,
+		"insecure", false,
+		"allow insecure (non-tls) gRPC connections (used for development only)")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogLevel,
+		"log-level",
+		"info",
+		"controls the log level (debug, info, warn, error, fatal)")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogFormat,
+		"log-format",
+		"text",
+		"controls the log output format (json, text)")
 
 	rootCmd.AddCommand(event.NewEventCmd())
 	rootCmd.AddCommand(provider.NewProviderCmd())
+	rootCmd.AddCommand(live.NewLiveCmd())
 
 	// add commands here
 	// e.g. rootCmd.AddCommand(sampleCmd.NewSampleCmd())

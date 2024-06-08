@@ -2,13 +2,9 @@ package unregister
 
 import (
 	"context"
-	"errors"
-	"io"
-	"strconv"
 
-	providerv1grpc "buf.build/gen/go/mpapenbr/testrepo/grpc/go/testrepo/provider/v1/providerv1grpc"
-	eventv1 "buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go/testrepo/event/v1"
-	providerv1 "buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go/testrepo/provider/v1"
+	providerv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/provider/v1/providerv1grpc"
+	providerv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/provider/v1"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/metadata"
 
@@ -53,14 +49,14 @@ func NewProviderUnregisterAllCmd() *cobra.Command {
 
 func unregisterEvent(arg string) error {
 	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
-	conn, err := util.ConnectGRPC(config.DefaultCliArgs().Addr)
+	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 		return err
 	}
 	defer conn.Close()
 	req := providerv1.UnregisterEventRequest{
-		EventSelector: resolveEvent(arg),
+		EventSelector: util.ResolveEvent(arg),
 	}
 	c := providerv1grpc.NewProviderServiceClient(conn)
 	md := metadata.Pairs("api-token", config.DefaultCliArgs().Token)
@@ -77,7 +73,7 @@ func unregisterEvent(arg string) error {
 
 func unregisterAllEvents() error {
 	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
-	conn, err := util.ConnectGRPC(config.DefaultCliArgs().Addr)
+	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 		return err
@@ -92,28 +88,12 @@ func unregisterAllEvents() error {
 		log.Error("could not unregister all", log.ErrorField(err))
 		return err
 	}
-	for {
-		resp, err := r.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			log.Error("error fetching events", log.ErrorField(err))
-			break
-		} else {
-			log.Debug("got event: ",
-				log.Uint32("id", resp.Event.Id),
-				log.String("key", resp.Event.Key))
-		}
+
+	for i := range r.Events {
+		log.Debug("got event: ",
+			log.Uint32("id", r.Events[i].Event.Id),
+			log.String("key", r.Events[i].Event.Key))
 	}
 
 	return nil
-}
-
-//nolint:gosec //check is not needed here
-func resolveEvent(arg string) *eventv1.EventSelector {
-	if id, err := strconv.Atoi(arg); err == nil {
-		return &eventv1.EventSelector{Arg: &eventv1.EventSelector_Id{Id: int32(id)}}
-	}
-	return &eventv1.EventSelector{Arg: &eventv1.EventSelector_Key{Key: arg}}
 }

@@ -1,60 +1,52 @@
-package list
+package deleteit
 
 import (
 	"context"
-	"errors"
-	"io"
 
 	eventv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/event/v1/eventv1grpc"
 	eventv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/event/v1"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/mpapenbr/iracelog-cli/config"
 	"github.com/mpapenbr/iracelog-cli/log"
 	"github.com/mpapenbr/iracelog-cli/util"
 )
 
-func NewEventListCmd() *cobra.Command {
+func NewEventDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "lists stored events.",
+		Use:   "delete",
+		Short: "delete stored event.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			listEvents()
+			deleteEvent(args[0])
 		},
 	}
+	cmd.PersistentFlags().StringVarP(&config.DefaultCliArgs().Token,
+		"token", "t", "", "authentication token")
 	return cmd
 }
 
-func listEvents() {
+func deleteEvent(arg string) {
 	log.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
-	req := eventv1.GetEventsRequest{}
+
+	req := eventv1.DeleteEventRequest{
+		EventSelector: util.ResolveEvent(arg),
+	}
+	md := metadata.Pairs("api-token", config.DefaultCliArgs().Token)
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	c := eventv1grpc.NewEventServiceClient(conn)
-	r, err := c.GetEvents(context.Background(), &req)
-	if err != nil {
-		log.Error("could not get events", log.ErrorField(err))
+	if _, err := c.DeleteEvent(ctx, &req); err != nil {
+		log.Error("could not delete event", log.ErrorField(err), log.String("event", arg))
 		return
 	}
-
-	for {
-		resp, err := r.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			log.Error("error fetching events", log.ErrorField(err))
-			break
-		} else {
-			log.Info("got event: ",
-				log.Uint32("id", resp.Event.Id),
-				log.String("key", resp.Event.Key))
-		}
-	}
+	log.Info("Event deleted.")
 }

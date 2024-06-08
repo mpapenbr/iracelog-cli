@@ -3,9 +3,9 @@ package register
 import (
 	"context"
 
-	providerv1grpc "buf.build/gen/go/mpapenbr/testrepo/grpc/go/testrepo/provider/v1/providerv1grpc"
-	eventv1 "buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go/testrepo/event/v1"
-	providerv1 "buf.build/gen/go/mpapenbr/testrepo/protocolbuffers/go/testrepo/provider/v1"
+	providerv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/provider/v1/providerv1grpc"
+	eventv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/event/v1"
+	providerv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/provider/v1"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/metadata"
@@ -33,7 +33,7 @@ func NewProviderRegisterCmd() *cobra.Command {
 
 func registerEvent() error {
 	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
-	conn, err := util.ConnectGRPC(config.DefaultCliArgs().Addr)
+	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 		return err

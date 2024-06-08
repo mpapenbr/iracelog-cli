@@ -8,8 +8,6 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/provider/unregister"
 )
 
-// eventCmd represents the event command
-
 func NewProviderCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "provider",
