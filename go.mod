@@ -11,11 +11,11 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240531140606-7b7655704e96.2
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240623151922-fb549bddc8ee.2
 	github.com/google/uuid v1.6.0
 )
 
-require buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.4.0-20240531140606-7b7655704e96.1
+require buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.4.0-20240623151922-fb549bddc8ee.1
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
