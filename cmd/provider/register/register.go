@@ -23,24 +23,34 @@ func NewProviderRegisterCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return registerEvent()
+			return registerEvent(config.DefaultCliArgs())
 		},
 	}
 	cmd.PersistentFlags().StringVarP(&config.DefaultCliArgs().Token,
 		"token", "t", "", "authentication token")
+	cmd.Flags().BoolVar(&config.DefaultCliArgs().DoNotPersist,
+		"do-not-persist",
+		false,
+		"do not persist the recorded data (used for debugging)")
 	return cmd
 }
 
-func registerEvent() error {
-	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
+func registerEvent(cfg *config.CliArgs) error {
+	log.Debug("connect ism ", log.String("addr", cfg.Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
 		log.Fatal("did not connect", log.ErrorField(err))
 		return err
 	}
 	defer conn.Close()
+	recordingMode := providerv1.RecordingMode_RECORDING_MODE_PERSIST
+	if cfg.DoNotPersist {
+		recordingMode = providerv1.RecordingMode_RECORDING_MODE_DO_NOT_PERSIST
+	}
 	req := providerv1.RegisterEventRequest{
-		Event: &eventv1.Event{Key: uuid.New().String()},
+		Event: &eventv1.Event{Key: uuid.New().String(), TrackId: 18},
+
+		RecordingMode: recordingMode,
 	}
 	c := providerv1grpc.NewProviderServiceClient(conn)
 	md := metadata.Pairs("api-token", config.DefaultCliArgs().Token)
