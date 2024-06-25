@@ -5,6 +5,7 @@ import (
 
 	"github.com/mpapenbr/iracelog-cli/cmd/event/deleteit"
 	"github.com/mpapenbr/iracelog-cli/cmd/event/list"
+	"github.com/mpapenbr/iracelog-cli/cmd/event/load"
 )
 
 // eventCmd represents the event command
@@ -19,5 +20,6 @@ func NewEventCmd() *cobra.Command {
 	}
 	cmd.AddCommand(list.NewEventListCmd())
 	cmd.AddCommand(deleteit.NewEventDeleteCmd())
+	cmd.AddCommand(load.NewEventLoadCmd())
 	return cmd
 }

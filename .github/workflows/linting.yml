@@ -9,7 +9,7 @@ on:
     types: [ opened, reopened ]
 
 jobs:
-  
+
 
   golangci-lint:
     strategy:
@@ -18,7 +18,7 @@ jobs:
         os: [ ubuntu-latest ]
 
     runs-on: ${{ matrix.os }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,13 +27,13 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-          
+
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           # Must be specified without patch version: we always use the latest patch version.
-          version: v1.56
+          version: v1.59
 
           # Optional: golangci-lint command line arguments.
           # args: --issues-exit-code=0
