@@ -16,8 +16,9 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/event"
 	"github.com/mpapenbr/iracelog-cli/cmd/live"
 	"github.com/mpapenbr/iracelog-cli/cmd/provider"
+	"github.com/mpapenbr/iracelog-cli/cmd/stress"
 	"github.com/mpapenbr/iracelog-cli/config"
-	"github.com/mpapenbr/iracelog-cli/util"
+	"github.com/mpapenbr/iracelog-cli/log"
 	"github.com/mpapenbr/iracelog-cli/version"
 )
 
@@ -32,7 +33,11 @@ var rootCmd = &cobra.Command{
 	Long:    ``,
 	Version: version.FullVersion,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		util.SetupLogger(config.DefaultCliArgs())
+		// util.SetupLogger(config.DefaultCliArgs())
+		if _, err := log.InitLoggerManager(config.DefaultCliArgs()); err != nil {
+			fmt.Fprintf(os.Stderr, "Error initializing logger: %v", err)
+			os.Exit(1)
+		}
 	},
 
 	// Uncomment the following line if your bare application
@@ -62,6 +67,10 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&config.DefaultCliArgs().Insecure,
 		"insecure", false,
 		"allow insecure (non-tls) gRPC connections (used for development only)")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogConfig,
+		"log-config",
+		"logger.yml",
+		"configuration file for logger")
 	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogLevel,
 		"log-level",
 		"info",
@@ -74,6 +83,7 @@ func init() {
 	rootCmd.AddCommand(event.NewEventCmd())
 	rootCmd.AddCommand(provider.NewProviderCmd())
 	rootCmd.AddCommand(live.NewLiveCmd())
+	rootCmd.AddCommand(stress.NewStressCmd())
 
 	// add commands here
 	// e.g. rootCmd.AddCommand(sampleCmd.NewSampleCmd())
