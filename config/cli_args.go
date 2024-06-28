@@ -5,6 +5,7 @@ import "fmt"
 type CliArgs struct {
 	Addr         string   // ism gRPC address
 	Insecure     bool     // connect to gRPC server without TLS
+	LogConfig    string   // log config file
 	LogLevel     string   // sets the log level (zap log level values)
 	LogFormat    string   // text vs json
 	LogFile      string   // log file to write to

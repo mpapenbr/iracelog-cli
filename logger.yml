@@ -1,0 +1,6 @@
+defaultLevel: info
+loggers:
+  "stress.worker": "debug"
+  "stress.processor": "info"
+  # "dummy": "error"
+

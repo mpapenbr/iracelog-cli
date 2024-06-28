@@ -23,13 +23,13 @@ func SetupLogger(cfg *config.CliArgs) *log.Logger {
 	case "json":
 		logger = log.New(
 			logFile,
-			parseLogLevel(cfg.LogLevel, log.InfoLevel),
+			ParseLogLevel(cfg.LogLevel, log.InfoLevel),
 			log.WithCaller(true),
 			log.AddCallerSkip(1))
 	default:
 		logger = log.DevLogger(
 			logFile,
-			parseLogLevel(cfg.LogLevel, log.DebugLevel),
+			ParseLogLevel(cfg.LogLevel, log.DebugLevel),
 			log.WithCaller(true),
 			log.AddCallerSkip(1))
 	}
@@ -38,7 +38,7 @@ func SetupLogger(cfg *config.CliArgs) *log.Logger {
 	return logger
 }
 
-func parseLogLevel(l string, defaultVal log.Level) log.Level {
+func ParseLogLevel(l string, defaultVal log.Level) log.Level {
 	level, err := log.ParseLevel(l)
 	if err != nil {
 		return defaultVal
