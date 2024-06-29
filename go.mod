@@ -15,7 +15,10 @@ require (
 	github.com/google/uuid v1.6.0
 )
 
-require buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.4.0-20240623151922-fb549bddc8ee.1
+require (
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.4.0-20240623151922-fb549bddc8ee.2
+	gopkg.in/yaml.v3 v3.0.1
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -38,5 +41,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
