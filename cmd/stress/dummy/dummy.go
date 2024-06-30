@@ -25,14 +25,15 @@ func NewStressDummyCmd() *cobra.Command {
 }
 
 func experimental() {
+	logger := log.GetLoggerManager().GetDefaultLogger()
 	configOptions := config.CollectStandardJobProcessorOptions()
 	configOptions = append(configOptions,
 		//nolint:gosec // by design
 		myStress.WithJobHandler(func(j *myStress.Job) error {
-			log.Debug("about to sleep", log.Int("jobId", j.Id))
+			logger.Debug("about to sleep", log.Int("jobId", j.Id))
 			waitTime := 100 + rand.Intn(100)
 			time.Sleep(time.Duration(waitTime) * time.Millisecond)
-			log.Debug("done sleeping", log.Int("jobId", j.Id), log.Time("myTime", time.Now()))
+			logger.Debug("done sleeping", log.Int("jobId", j.Id), log.Time("myTime", time.Now()))
 			if rand.Intn(5) == 0 {
 				return errors.New("simulated error")
 			}

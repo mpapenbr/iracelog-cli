@@ -2,9 +2,7 @@ package log
 
 import (
 	"os"
-	"strings"
 
-	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,19 +23,4 @@ func LoadConfig(filename string) (*Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-func GetZapLevel(level string) zapcore.Level {
-	switch strings.ToLower(level) {
-	case "debug":
-		return zapcore.DebugLevel
-	case "info":
-		return zapcore.InfoLevel
-	case "warn":
-		return zapcore.WarnLevel
-	case "error":
-		return zapcore.ErrorLevel
-	default:
-		return zapcore.InfoLevel
-	}
 }
