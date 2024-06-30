@@ -1,6 +1,7 @@
 package log
 
 import (
+	"strings"
 	"sync"
 
 	"go.uber.org/zap"
@@ -10,10 +11,11 @@ import (
 )
 
 type LoggerManager struct {
-	baseLogger *Logger
-	config     *Config
-	loggers    map[string]*Logger
-	mu         sync.Mutex
+	baseLogger      *Logger
+	config          *Config
+	loggers         map[string]*Logger
+	mu              sync.Mutex
+	defaultLogLevel zapcore.Level
 }
 
 var loggerManager *LoggerManager
@@ -23,8 +25,14 @@ func InitLoggerManager(cliArgs *config.CliArgs) (*LoggerManager, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	loggerManager, err = NewLoggerManager(cfg)
+	if cliArgs.LogLevel != "" {
+		cfg.DefaultLevel = cliArgs.LogLevel
+	}
+	defaultLvl, err := ParseLevel(cfg.DefaultLevel)
+	if err != nil {
+		return nil, err
+	}
+	loggerManager, err = NewLoggerManager(cfg, defaultLvl)
 	if err != nil {
 		return nil, err
 	}
@@ -36,28 +44,32 @@ func GetLoggerManager() *LoggerManager {
 	return loggerManager
 }
 
-func NewLoggerManager(cfg *Config) (*LoggerManager, error) {
+//nolint:lll // readibility
+func NewLoggerManager(cfg *Config, defaultLogLevel zapcore.Level) (*LoggerManager, error) {
 	// Build the base logger
-	baseLogger, err := createLogger("", cfg.DefaultLevel)
+
+	baseLogger, err := createLogger("", cfg.DefaultLevel, defaultLogLevel)
 	if err != nil {
 		return nil, err
 	}
 
 	return &LoggerManager{
-		baseLogger: &Logger{l: baseLogger, level: baseLogger.Level()},
-		config:     cfg,
-		loggers:    make(map[string]*Logger),
-		mu:         sync.Mutex{},
+		baseLogger:      &Logger{l: baseLogger, level: baseLogger.Level()},
+		config:          cfg,
+		loggers:         make(map[string]*Logger),
+		mu:              sync.Mutex{},
+		defaultLogLevel: defaultLogLevel,
 	}, nil
 }
 
-func createLogger(name, level string) (*zap.Logger, error) {
+//nolint:lll // readibility
+func createLogger(name, level string, defaultLogLevel zapcore.Level) (*zap.Logger, error) {
 	baseCfg := zap.NewProductionConfig()
 	baseCfg.EncoderConfig.TimeKey = "timestamp"
 	baseCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
 	// Set default log level
-	defaultLevel := GetZapLevel(level)
+	defaultLevel := GetZapLevel(level, defaultLogLevel)
 	baseCfg.Level = zap.NewAtomicLevelAt(defaultLevel)
 
 	// Build the base logger
@@ -65,11 +77,16 @@ func createLogger(name, level string) (*zap.Logger, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if name != "" {
 		return baseLogger.Named(name), nil
 	} else {
 		return baseLogger, nil
 	}
+}
+
+func (lm *LoggerManager) GetDefaultLogger() *Logger {
+	return lm.baseLogger
 }
 
 func (lm *LoggerManager) GetLogger(name string) *Logger {
@@ -82,8 +99,8 @@ func (lm *LoggerManager) GetLogger(name string) *Logger {
 
 	// Create a new logger with the default level
 
-	newLogger, _ := createLogger(name, lm.config.Loggers[name])
-	ret := &Logger{l: newLogger, level: GetZapLevel(lm.config.Loggers[name])}
+	newLogger, _ := createLogger(name, lm.config.Loggers[name], lm.defaultLogLevel)
+	ret := &Logger{l: newLogger, level: newLogger.Level()}
 
 	lm.loggers[name] = ret
 	return ret
@@ -97,4 +114,19 @@ func (lm *LoggerManager) GetRegisteredLoggers() []string {
 		names = append(names, name)
 	}
 	return names
+}
+
+func GetZapLevel(level string, defaultLogLevel zapcore.Level) zapcore.Level {
+	switch strings.ToLower(level) {
+	case "debug":
+		return zapcore.DebugLevel
+	case "info":
+		return zapcore.InfoLevel
+	case "warn":
+		return zapcore.WarnLevel
+	case "error":
+		return zapcore.ErrorLevel
+	default:
+		return defaultLogLevel
+	}
 }

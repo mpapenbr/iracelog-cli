@@ -2,5 +2,7 @@ defaultLevel: info
 loggers:
   "stress.worker": "debug"
   "stress.processor": "info"
+  "replay": "info"
+  "replay.fetcher.driver": "info"
+  "replay.state": "info"
   # "dummy": "error"
-

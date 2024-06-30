@@ -4,6 +4,8 @@ import (
 	"time"
 
 	racestatev1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/racestate/v1"
+
+	"github.com/mpapenbr/iracelog-cli/log"
 )
 
 type providerType string
@@ -14,6 +16,9 @@ const (
 	SpeedmapData providerType = "SpeedmapData"
 )
 
+// this is used to peek into the data stream of the different provider.
+// we need this to create an order of messages to be published
+// therefore we use the timestamp of the provided messages
 type peek interface {
 	ts() time.Time
 	provider() providerType
@@ -25,6 +30,7 @@ type commonStateData[E any] struct {
 	dataReq      *E
 	r            *ReplayTask
 	providerType providerType
+	logger       *log.Logger
 }
 
 func (p *commonStateData[E]) refill() bool {
