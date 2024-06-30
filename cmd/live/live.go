@@ -7,6 +7,7 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/live/snapshot"
 	"github.com/mpapenbr/iracelog-cli/cmd/live/speedmap"
 	"github.com/mpapenbr/iracelog-cli/cmd/live/state"
+	"github.com/mpapenbr/iracelog-cli/cmd/live/webclient"
 	"github.com/mpapenbr/iracelog-cli/config"
 )
 
@@ -26,6 +27,7 @@ func NewLiveCmd() *cobra.Command {
 	cmd.AddCommand(analysis.NewLiveCarOccupancyCmd())
 	cmd.AddCommand(speedmap.NewLiveSpeedmapCmd())
 	cmd.AddCommand(snapshot.NewLiveSnapshotCmd())
+	cmd.AddCommand(webclient.NewLiveWebclientCmd())
 
 	return cmd
 }
