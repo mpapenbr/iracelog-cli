@@ -1,8 +1,9 @@
 defaultLevel: info
 loggers:
-  "stress.worker": "debug"
+  "stress.worker": "info"
   "stress.processor": "info"
   "replay": "info"
   "replay.fetcher.driver": "info"
   "replay.state": "info"
+  "webclient.driver": "info"
   # "dummy": "error"

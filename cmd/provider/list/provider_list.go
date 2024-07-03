@@ -25,10 +25,11 @@ func NewProviderListCmd() *cobra.Command {
 }
 
 func listEvents() error {
-	log.Debug("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
+	logger := log.GetLoggerManager().GetDefaultLogger()
+	logger.Debug("connect grpc server ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
-		log.Fatal("did not connect", log.ErrorField(err))
+		logger.Fatal("did not connect", log.ErrorField(err))
 		return err
 	}
 	defer conn.Close()
@@ -36,12 +37,12 @@ func listEvents() error {
 	c := providerv1grpc.NewProviderServiceClient(conn)
 	r, err := c.ListLiveEvents(context.Background(), &req)
 	if err != nil {
-		log.Error("could not get events", log.ErrorField(err))
+		logger.Error("could not get events", log.ErrorField(err))
 		return err
 	}
 
 	for i := range r.Events {
-		log.Debug("got event: ", log.Any("event", r.Events[i]))
+		logger.Debug("got event: ", log.Any("event", r.Events[i]))
 	}
 	return nil
 }

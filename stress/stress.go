@@ -15,6 +15,7 @@ type Job struct {
 	Id       int              // used for overall id
 	WorkerId int              // used to identify worker this job is assigned to
 	Client   *grpc.ClientConn // used for communication with backend
+	Ctx      context.Context  // used for cancellation
 }
 
 type JobResult struct {
@@ -121,8 +122,16 @@ func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 	return ret
 }
 
+//nolint:funlen // by design
 func (p *JobProcessor) Run() {
+	// this is used to cancel the processor and resultCollector
 	ctx, cancel := context.WithCancel(context.Background())
+	// a different context is used for the workers
+	// to ensure they are terminated at the deadline
+	workerCtx, workerCtxCancel := context.WithTimeout(context.Background(), p.duration)
+	defer workerCtxCancel()
+	deadline, _ := workerCtx.Deadline()
+	p.pLogger.Info("Processor deadline", log.Time("deadline", deadline))
 
 	// setup result collector
 	go p.resultCollector(ctx)
@@ -132,7 +141,7 @@ func (p *JobProcessor) Run() {
 		p.wgWorker.Add(1)
 		workerStats := WorkerStats{Id: i}
 		p.workerStats = append(p.workerStats, workerStats)
-		go p.jobWorker(workerStats, ctx)
+		go p.jobWorker(workerStats, workerCtx)
 	}
 
 	// create initial jobs and add them to the queue
@@ -231,6 +240,7 @@ func (p *JobProcessor) jobWorker(
 		case job := <-p.queue:
 			job.WorkerId = workerStats.Id
 			job.Client = client
+			job.Ctx = ctx
 			p.executeJob(job)
 		}
 	}

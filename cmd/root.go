@@ -38,7 +38,6 @@ var rootCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error initializing logger: %v", err)
 			os.Exit(1)
 		}
-		fmt.Printf("iracelog-cli logLevel:%s\n", config.DefaultCliArgs().LogLevel)
 	},
 
 	// Uncomment the following line if your bare application
