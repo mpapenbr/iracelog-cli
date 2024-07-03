@@ -29,17 +29,18 @@ func NewEventListCmd() *cobra.Command {
 }
 
 func listEvents() {
-	log.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
+	logger := log.GetLoggerManager().GetDefaultLogger()
+	logger.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
-		log.Fatal("did not connect", log.ErrorField(err))
+		logger.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
 	req := eventv1.GetEventsRequest{}
 	c := eventv1grpc.NewEventServiceClient(conn)
 	r, err := c.GetEvents(context.Background(), &req)
 	if err != nil {
-		log.Error("could not get events", log.ErrorField(err))
+		logger.Error("could not get events", log.ErrorField(err))
 		return
 	}
 
@@ -49,10 +50,10 @@ func listEvents() {
 			break
 		}
 		if err != nil {
-			log.Error("error fetching events", log.ErrorField(err))
+			logger.Error("error fetching events", log.ErrorField(err))
 			break
 		} else {
-			log.Info("got event: ",
+			logger.Info("got event: ",
 				log.Uint32("id", resp.Event.Id),
 				log.String("key", resp.Event.Key))
 		}

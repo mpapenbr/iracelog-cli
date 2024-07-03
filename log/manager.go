@@ -73,7 +73,7 @@ func createLogger(name, level string, defaultLogLevel zapcore.Level) (*zap.Logge
 	baseCfg.Level = zap.NewAtomicLevelAt(defaultLevel)
 
 	// Build the base logger
-	baseLogger, err := baseCfg.Build()
+	baseLogger, err := baseCfg.Build(AddCallerSkip(1))
 	if err != nil {
 		return nil, err
 	}
