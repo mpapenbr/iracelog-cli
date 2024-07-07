@@ -32,7 +32,7 @@ func NewStressDummyEventListCmd() *cobra.Command {
 func experimental() {
 	configOptions := config.CollectStandardJobProcessorOptions()
 	configOptions = append(configOptions,
-		myStress.WithClientProvider(func() *grpc.ClientConn {
+		myStress.WithTargetClientProvider(func() *grpc.ClientConn {
 			c, err := util.ConnectGrpc(appCfg.DefaultCliArgs())
 			if err != nil {
 				log.Fatal("could  not connect server", log.ErrorField(err))
@@ -42,7 +42,7 @@ func experimental() {
 		}),
 		myStress.WithJobHandler(func(j *myStress.Job) error {
 			req := eventv1.GetEventsRequest{}
-			c := eventv1grpc.NewEventServiceClient(j.Client)
+			c := eventv1grpc.NewEventServiceClient(j.TargetClient)
 			r, err := c.GetEvents(context.Background(), &req)
 			if err != nil {
 				log.Error("could not get events", log.ErrorField(err))
