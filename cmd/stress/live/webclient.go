@@ -21,12 +21,13 @@ import (
 var (
 	jobDurationArg   string
 	jobDurationFixed bool
+	singleConnection bool
 )
 
-func NewStressLiveWebclientListCmd() *cobra.Command {
+func NewStressLiveWebclientCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "webclient",
-		Short: "dummy to test stress component ",
+		Short: "simulate a set of webclients listening to live data",
 		Run: func(cmd *cobra.Command, args []string) {
 			webclient()
 		},
@@ -37,6 +38,10 @@ func NewStressLiveWebclientListCmd() *cobra.Command {
 		"job-duration-fixed",
 		false,
 		"if set, job duration is fixed, otherwise random up to job-duration")
+	cmd.Flags().BoolVar(&singleConnection,
+		"single-connection",
+		false,
+		"if set, all threads will use the same server connection")
 	return cmd
 }
 
@@ -46,22 +51,36 @@ func NewStressLiveWebclientListCmd() *cobra.Command {
 // - be listener for live data for random time
 // - done
 //
-//nolint:funlen,gocognit // ok here
+//nolint:funlen,gocognit,cyclop // ok here
 func webclient() {
 	logger := log.GetLoggerManager().GetDefaultLogger()
+	statsLogger := log.GetLoggerManager().GetLogger("stats")
 	configOptions := config.CollectStandardJobProcessorOptions()
+	var singleConn *grpc.ClientConn
+	if singleConnection {
+		var err error
+		singleConn, err = util.ConnectGrpc(appCfg.DefaultCliArgs())
+		if err != nil {
+			logger.Fatal("could  not connect server", log.ErrorField(err))
+		}
+		logger.Debug("connected to server")
+	}
 	configOptions = append(configOptions,
-		myStress.WithClientProvider(func() *grpc.ClientConn {
-			c, err := util.ConnectGrpc(appCfg.DefaultCliArgs())
-			if err != nil {
-				logger.Fatal("could  not connect server", log.ErrorField(err))
+		myStress.WithTargetClientProvider(func() *grpc.ClientConn {
+			if singleConnection {
+				return singleConn
+			} else {
+				c, err := util.ConnectGrpc(appCfg.DefaultCliArgs())
+				if err != nil {
+					logger.Fatal("could  not connect server", log.ErrorField(err))
+				}
+				logger.Debug("connected to server")
+				return c
 			}
-			logger.Debug("connected to server")
-			return c
 		}),
 		myStress.WithJobHandler(func(j *myStress.Job) error {
 			req := providerv1.ListLiveEventsRequest{}
-			c := providerv1grpc.NewProviderServiceClient(j.Client)
+			c := providerv1grpc.NewProviderServiceClient(j.TargetClient)
 			r, err := c.ListLiveEvents(context.Background(), &req)
 			if err != nil {
 				logger.Error("could not get live events", log.ErrorField(err))
@@ -69,6 +88,7 @@ func webclient() {
 			}
 			if len(r.Events) == 0 {
 				logger.Info("no events found")
+				time.Sleep(1 * time.Second)
 				return nil
 			}
 			//nolint:gosec // ok here
@@ -76,7 +96,7 @@ func webclient() {
 			logger.Info("picked event", log.Uint32("id", r.Events[idx].Event.Id))
 
 			opts := []simulate.Option{
-				simulate.WithClient(j.Client),
+				simulate.WithClient(j.TargetClient),
 			}
 
 			var ctx context.Context
@@ -109,8 +129,13 @@ func webclient() {
 
 			wc := simulate.NewWebclient(opts...)
 			sel := util.ResolveEvent(r.Events[idx].Event.Key)
-			//nolint:errcheck // by design
-			wc.Start(sel)
+
+			if wcErr := wc.Start(sel); wcErr == nil {
+				statsLogger.Info("webclient finished",
+					log.Int("jobId", j.Id),
+					log.Int("workerId", j.WorkerId),
+					log.Any("stats", wc.GetStats()))
+			}
 
 			return nil
 		}),

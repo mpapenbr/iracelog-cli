@@ -29,6 +29,7 @@ type (
 		stats                 Stats
 		statsCallback         func(*Stats)
 		statsCallbackDuration time.Duration
+		maxErrors             int
 	}
 	DataStat struct {
 		Count uint
@@ -48,6 +49,12 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
+func WithMaxErrors(maxErrors int) Option {
+	return func(w *Webclient) {
+		w.maxErrors = maxErrors
+	}
+}
+
 func WithClient(client *grpc.ClientConn) Option {
 	return func(w *Webclient) {
 		w.client = client
@@ -63,8 +70,9 @@ func WithStatsCallback(d time.Duration, callback func(*Stats)) Option {
 
 func NewWebclient(opts ...Option) *Webclient {
 	w := &Webclient{
-		logger: log.GetLoggerManager().GetLogger("webclient"),
-		wg:     sync.WaitGroup{},
+		logger:    log.GetLoggerManager().GetLogger("webclient"),
+		wg:        sync.WaitGroup{},
+		maxErrors: 5,
 	}
 	for _, opt := range opts {
 		opt(w)
@@ -101,7 +109,11 @@ func (w *Webclient) Start(event *commonv1.EventSelector) error {
 	return nil
 }
 
-//nolint:dupl,funlen,gocognit // by design
+func (w *Webclient) GetStats() Stats {
+	return w.stats
+}
+
+//nolint:dupl,funlen,gocognit,cyclop // by design
 func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
@@ -127,6 +139,7 @@ func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 		myLogger.Error("could not get live data", log.ErrorField(err))
 		return
 	}
+	errorCount := 0
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -145,11 +158,21 @@ func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
 					myLogger.Debug("context deadline exceeded")
 					return
+				case codes.NotFound:
+					myLogger.Debug("event may be no longer available")
+					return
 				}
 			}
 			if err != nil {
 				myLogger.Error("error fetching live analysis", log.ErrorField(err))
+				errorCount++
+				time.Sleep(1 * time.Second) // just to slow down the error log
+				if errorCount > w.maxErrors {
+					myLogger.Error("too many errors", log.Int("max", w.maxErrors))
+					return
+				}
 			} else {
+				errorCount = 0
 				myLogger.Debug("msg rcvd", log.Int("size", proto.Size(resp)))
 				w.stats.Analysis.Count++
 				w.stats.Analysis.Bytes += uint(proto.Size(resp))
@@ -158,7 +181,7 @@ func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 	}
 }
 
-//nolint:dupl,gocognit // by design
+//nolint:dupl,gocognit,funlen,cyclop // by design
 func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
@@ -170,6 +193,7 @@ func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 		myLogger.Error("could not get live data", log.ErrorField(err))
 		return
 	}
+	errorCount := 0
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -188,11 +212,21 @@ func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
 					myLogger.Debug("context deadline exceeded")
 					return
+				case codes.NotFound:
+					myLogger.Debug("event may be no longer available")
+					return
 				}
 			}
 			if err != nil {
 				myLogger.Error("error fetching live state", log.ErrorField(err))
+				errorCount++
+				time.Sleep(1 * time.Second) // just to slow down the error log
+				if errorCount > w.maxErrors {
+					myLogger.Error("too many errors", log.Int("max", w.maxErrors))
+					return
+				}
 			} else {
+				errorCount = 0
 				myLogger.Debug("msg rcvd", log.Int("size", proto.Size(resp)))
 				w.stats.State.Count++
 				w.stats.State.Bytes += uint(proto.Size(resp))
@@ -201,7 +235,7 @@ func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 	}
 }
 
-//nolint:dupl,gocognit // by design
+//nolint:dupl,gocognit,funlen,cyclop // by design
 func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
@@ -213,6 +247,7 @@ func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 		myLogger.Error("could not get live data", log.ErrorField(err))
 		return
 	}
+	errorCount := 0
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -231,11 +266,21 @@ func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
 					myLogger.Debug("context deadline exceeded")
 					return
+				case codes.NotFound:
+					myLogger.Debug("event may be no longer available")
+					return
 				}
 			}
 			if err != nil {
 				myLogger.Error("error fetching live speedmaps", log.ErrorField(err))
+				errorCount++
+				time.Sleep(1 * time.Second) // just to slow down the error log
+				if errorCount > w.maxErrors {
+					myLogger.Error("too many errors", log.Int("max", w.maxErrors))
+					return
+				}
 			} else {
+				errorCount = 0
 				myLogger.Debug("msg rcvd", log.Int("size", proto.Size(resp)))
 				w.stats.Speedmap.Count++
 				w.stats.Speedmap.Bytes += uint(proto.Size(resp))
@@ -244,7 +289,7 @@ func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 	}
 }
 
-//nolint:gocognit // by design
+//nolint:gocognit,funlen,cyclop // by design
 func (w *Webclient) liveDriverData(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
@@ -256,6 +301,7 @@ func (w *Webclient) liveDriverData(event *commonv1.EventSelector) {
 		myLogger.Error("could not get live data", log.ErrorField(err))
 		return
 	}
+	errorCount := 0
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -274,14 +320,23 @@ func (w *Webclient) liveDriverData(event *commonv1.EventSelector) {
 				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
 					myLogger.Debug("context deadline exceeded", log.Int("code", int(st.Code())))
 					return
+
+				case codes.OK:
+					myLogger.Debug("msg rcvd", log.Int("size", proto.Size(resp)))
+					w.stats.Driver.Count++
+					w.stats.Driver.Bytes += uint(proto.Size(resp))
+					errorCount = 0
+				default:
+					myLogger.Error("error fetching live driver data", log.ErrorField(err))
+					errorCount++
+					if errorCount > w.maxErrors {
+						myLogger.Error("too many errors",
+							log.Int("errorCount", errorCount),
+							log.Int("max", w.maxErrors))
+						return
+					}
+					time.Sleep(1 * time.Second) // just to slow down the error log
 				}
-			}
-			if err != nil {
-				myLogger.Error("error fetching live driver data", log.ErrorField(err))
-			} else {
-				myLogger.Debug("msg rcvd", log.Int("size", proto.Size(resp)))
-				w.stats.Driver.Count++
-				w.stats.Driver.Bytes += uint(proto.Size(resp))
 			}
 		}
 	}

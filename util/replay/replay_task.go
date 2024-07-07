@@ -12,7 +12,9 @@ import (
 	providerv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/provider/v1"
 	racestatev1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/racestate/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/mpapenbr/iracelog-cli/log"
 )
@@ -35,6 +37,7 @@ func NewReplayTask(
 		dataProvider: dataProvider,
 		dest:         dest,
 		myLog:        log.GetLoggerManager().GetDefaultLogger(),
+		ctx:          context.Background(),
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -60,6 +63,12 @@ func WithSpeed(speed int) ReplayOption {
 	}
 }
 
+func WithContext(ctx context.Context) ReplayOption {
+	return func(r *ReplayTask) {
+		r.ctx = ctx
+	}
+}
+
 func WithLogging() ReplayOption {
 	return func(r *ReplayTask) {
 		r.myLog = log.GetLoggerManager().GetLogger("replay")
@@ -71,7 +80,8 @@ type ReplayTask struct {
 	dest         *grpc.ClientConn // destination server
 
 	ctx              context.Context
-	cancel           context.CancelFunc
+	localCtx         context.Context
+	localCancel      context.CancelFunc
 	providerService  providerv1grpc.ProviderServiceClient
 	raceStateService racestatev1grpc.RaceStateServiceClient
 	event            *eventv1.Event
@@ -95,7 +105,6 @@ func (p *peekDriverData) publish() error {
 	p.logger.Debug("Sending driver data", log.Time("time", p.dataReq.Timestamp.AsTime()))
 	ctx := p.r.prepOutgoingContext(p.r.ctx)
 	if _, err := p.r.raceStateService.PublishDriverData(ctx, p.dataReq); err != nil {
-		p.logger.Error("Error publishing driver data", log.ErrorField(err))
 		return err
 	}
 	return nil
@@ -109,7 +118,6 @@ func (p *peekStateData) publish() error {
 	p.logger.Debug("Sending state data", log.Time("time", p.dataReq.Timestamp.AsTime()))
 	ctx := p.r.prepOutgoingContext(p.r.ctx)
 	if _, err := p.r.raceStateService.PublishState(ctx, p.dataReq); err != nil {
-		p.logger.Error("Error publishing state data", log.ErrorField(err))
 		return err
 	}
 	return nil
@@ -117,15 +125,17 @@ func (p *peekStateData) publish() error {
 
 // --- SpeedmapData ---
 func (p *peekSpeedmapData) ts() time.Time {
+	if p.dataReq == nil {
+		return time.Unix(0, 0).Add(1<<63 - 1) // very far in the future
+	}
+
 	return p.dataReq.Timestamp.AsTime()
 }
 
 func (p *peekSpeedmapData) publish() error {
 	p.logger.Debug("Sending speedmap data", log.Time("time", p.dataReq.Timestamp.AsTime()))
-
 	ctx := p.r.prepOutgoingContext(p.r.ctx)
 	if _, err := p.r.raceStateService.PublishSpeedmap(ctx, p.dataReq); err != nil {
-		p.logger.Error("Error publishing speedmap data", log.ErrorField(err))
 		return err
 	}
 	return nil
@@ -134,8 +144,8 @@ func (p *peekSpeedmapData) publish() error {
 func (r *ReplayTask) Replay(eventId uint32) error {
 	r.providerService = providerv1grpc.NewProviderServiceClient(r.dest)
 	r.raceStateService = racestatev1grpc.NewRaceStateServiceClient(r.dest)
-	r.ctx, r.cancel = context.WithCancel(context.Background())
-	defer r.cancel()
+	r.localCtx, r.localCancel = context.WithCancel(context.Background())
+	defer r.localCancel()
 
 	r.stateChan = make(chan *racestatev1.PublishStateRequest)
 	r.speedmapChan = make(chan *racestatev1.PublishSpeedmapRequest)
@@ -194,16 +204,22 @@ func (r *ReplayTask) sendData() {
 			},
 		},
 	)
+	// init the peek data provider and check if they are exhausted
+	init := []peek{}
 	for _, p := range pData {
 		if !p.refill() {
-			r.myLog.Debug("exhausted", log.String("provider", string(p.provider())))
+			r.myLog.Debug("initial exhausted",
+				log.String("provider", string(p.provider())))
+		} else {
+			init = append(init, p)
 		}
 	}
+	pData = init
 	lastTs := time.Time{}
 
-	var selector providerType
-	var current peek
 	for {
+		var selector providerType
+		var current peek
 		var delta time.Duration
 		var currentIdx int
 		// create a max time from  (don't use time.Unix(1<<63-1), that's not what we want)
@@ -231,8 +247,20 @@ func (r *ReplayTask) sendData() {
 			}
 		}
 		lastTs = nextTs
-
+		if current == nil {
+			r.myLog.Error("No provider found")
+			return
+		}
 		if err := current.publish(); err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				//nolint:exhaustive // false positive
+				switch st.Code() {
+				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
+					r.myLog.Debug("context deadline exceeded")
+					return
+				}
+			}
 			r.myLog.Error("Error publishing data", log.ErrorField(err))
 			return
 		}
@@ -272,20 +300,20 @@ func (r *ReplayTask) provideDriverData() {
 	defer r.wg.Done()
 	i := 0
 	for {
-		select {
-		case <-r.ctx.Done():
-			r.myLog.Debug("Context done")
+		item := r.dataProvider.NextDriverData()
+		if item == nil {
+			r.myLog.Debug("No more driver data")
+			close(r.driverDataChan)
 			return
-		default:
-			item := r.dataProvider.NextDriverData()
-			if item == nil {
-				r.myLog.Debug("No more driver data")
-				close(r.driverDataChan)
-				return
-			}
-			r.driverDataChan <- item
+		}
+		select {
+		case r.driverDataChan <- item:
 			i++
 			r.myLog.Debug("Sent data on driverDataChen", log.Int("i", i))
+		case <-r.ctx.Done():
+			close(r.driverDataChan)
+			r.myLog.Debug("Context done (inner)")
+			return
 		}
 	}
 }
@@ -294,20 +322,20 @@ func (r *ReplayTask) provideStateData() {
 	defer r.wg.Done()
 	i := 0
 	for {
-		select {
-		case <-r.ctx.Done():
-			r.myLog.Debug("Context done")
+		item := r.dataProvider.NextStateData()
+		if item == nil {
+			r.myLog.Debug("No more state data")
+			close(r.stateChan)
 			return
-		default:
-			item := r.dataProvider.NextStateData()
-			if item == nil {
-				r.myLog.Debug("No more state data")
-				close(r.stateChan)
-				return
-			}
-			r.stateChan <- item
+		}
+		select {
+		case r.stateChan <- item:
 			i++
 			r.myLog.Debug("Sent data on stateDataChan", log.Int("i", i))
+		case <-r.ctx.Done():
+			close(r.stateChan)
+			r.myLog.Debug("Context done (inner)")
+			return
 		}
 	}
 }
@@ -316,20 +344,20 @@ func (r *ReplayTask) provideSpeedmapData() {
 	defer r.wg.Done()
 	i := 0
 	for {
-		select {
-		case <-r.ctx.Done():
-			r.myLog.Debug("Context done")
+		item := r.dataProvider.NextSpeedmapData()
+		if item == nil {
+			r.myLog.Debug("No more speedmap data")
+			close(r.speedmapChan)
 			return
-		default:
-			item := r.dataProvider.NextSpeedmapData()
-			if item == nil {
-				r.myLog.Debug("No more speedmap data")
-				close(r.speedmapChan)
-				return
-			}
-			r.speedmapChan <- item
+		}
+		select {
+		case r.speedmapChan <- item:
 			i++
 			r.myLog.Debug("Sent data on speedmapChan", log.Int("i", i))
+		case <-r.ctx.Done():
+			close(r.speedmapChan)
+			r.myLog.Debug("Context done (inner)")
+			return
 		}
 	}
 }
@@ -349,7 +377,9 @@ func (r *ReplayTask) unregisterEvent() error {
 	req := &providerv1.UnregisterEventRequest{
 		EventSelector: r.buildEventSelector(),
 	}
-	_, err := r.providerService.UnregisterEvent(r.prepOutgoingContext(r.ctx), req)
+	_, err := r.providerService.UnregisterEvent(
+		r.prepOutgoingContext(context.Background()),
+		req)
 	return err
 }
 

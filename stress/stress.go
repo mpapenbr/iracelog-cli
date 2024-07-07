@@ -12,10 +12,11 @@ import (
 )
 
 type Job struct {
-	Id       int              // used for overall id
-	WorkerId int              // used to identify worker this job is assigned to
-	Client   *grpc.ClientConn // used for communication with backend
-	Ctx      context.Context  // used for cancellation
+	Id           int              // used for overall id
+	WorkerId     int              // used to identify worker this job is assigned to
+	TargetClient *grpc.ClientConn // used for communication with target backend
+	SourceClient *grpc.ClientConn // used for communication with source backend (if needed)
+	Ctx          context.Context  // used for cancellation
 }
 
 type JobResult struct {
@@ -41,19 +42,20 @@ type (
 )
 
 type JobProcessor struct {
-	numWorker      int
-	pause          time.Duration
-	duration       time.Duration // max time the JobProcessor is running
-	wgWorker       sync.WaitGroup
-	wgResult       sync.WaitGroup
-	queue          chan *Job
-	results        chan *JobResult
-	doSchedule     bool
-	pLogger        *log.Logger // processor logger
-	wLogger        *log.Logger // worker logger
-	jobHandler     JobHandler
-	workerProgress time.Duration // show worker progress if > 0
-	clientProvider func() *grpc.ClientConn
+	numWorker            int
+	pause                time.Duration
+	duration             time.Duration // max time the JobProcessor is running
+	wgWorker             sync.WaitGroup
+	wgResult             sync.WaitGroup
+	queue                chan *Job
+	results              chan *JobResult
+	doSchedule           bool
+	pLogger              *log.Logger // processor logger
+	wLogger              *log.Logger // worker logger
+	jobHandler           JobHandler
+	workerProgress       time.Duration // show worker progress if > 0
+	targetClientProvider func() *grpc.ClientConn
+	sourceClientProvider func() *grpc.ClientConn
 
 	// collector   dvlResultsCollector
 	workerStats []WorkerStats
@@ -99,9 +101,15 @@ func WithLogging(logger *log.Logger) OptionFunc {
 	}
 }
 
-func WithClientProvider(provider func() *grpc.ClientConn) OptionFunc {
+func WithTargetClientProvider(provider func() *grpc.ClientConn) OptionFunc {
 	return func(sp *JobProcessor) {
-		sp.clientProvider = provider
+		sp.targetClientProvider = provider
+	}
+}
+
+func WithSourceClientProvider(provider func() *grpc.ClientConn) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.sourceClientProvider = provider
 	}
 }
 
@@ -228,9 +236,13 @@ func (p *JobProcessor) jobWorker(
 	ctx context.Context,
 ) {
 	defer p.wgWorker.Done()
-	var client *grpc.ClientConn
-	if p.clientProvider != nil {
-		client = p.clientProvider()
+	var targetClient *grpc.ClientConn
+	var sourceClient *grpc.ClientConn
+	if p.targetClientProvider != nil {
+		targetClient = p.targetClientProvider()
+	}
+	if p.sourceClientProvider != nil {
+		sourceClient = p.sourceClientProvider()
 	}
 	for {
 		select {
@@ -239,7 +251,8 @@ func (p *JobProcessor) jobWorker(
 			return
 		case job := <-p.queue:
 			job.WorkerId = workerStats.Id
-			job.Client = client
+			job.TargetClient = targetClient
+			job.SourceClient = sourceClient
 			job.Ctx = ctx
 			p.executeJob(job)
 		}

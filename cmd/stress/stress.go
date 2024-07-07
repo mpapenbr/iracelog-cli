@@ -9,6 +9,7 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/stress/dummy"
 	"github.com/mpapenbr/iracelog-cli/cmd/stress/events"
 	"github.com/mpapenbr/iracelog-cli/cmd/stress/live"
+	"github.com/mpapenbr/iracelog-cli/cmd/stress/replay"
 )
 
 var (
@@ -37,6 +38,7 @@ func NewStressCmd() *cobra.Command {
 
 	cmd.AddCommand(dummy.NewStressDummyCmd())
 	cmd.AddCommand(events.NewStressDummyEventListCmd())
-	cmd.AddCommand(live.NewStressLiveWebclientListCmd())
+	cmd.AddCommand(live.NewStressLiveWebclientCmd())
+	cmd.AddCommand(replay.NewStressReplayCmd())
 	return cmd
 }
