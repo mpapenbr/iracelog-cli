@@ -21,3 +21,4 @@ dist/**
 .gitconfig.local*
 .npmrc
 .iracelog-cli.yml
+*.log

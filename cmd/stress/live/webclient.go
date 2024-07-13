@@ -3,6 +3,7 @@ package live
 import (
 	"context"
 	"math/rand"
+	"sync"
 	"time"
 
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/provider/v1/providerv1grpc"
@@ -29,7 +30,7 @@ func NewStressLiveWebclientCmd() *cobra.Command {
 		Use:   "webclient",
 		Short: "simulate a set of webclients listening to live data",
 		Run: func(cmd *cobra.Command, args []string) {
-			webclient()
+			webclient(cmd.Context())
 		},
 	}
 	cmd.Flags().StringVar(&jobDurationArg,
@@ -51,10 +52,10 @@ func NewStressLiveWebclientCmd() *cobra.Command {
 // - be listener for live data for random time
 // - done
 //
-//nolint:funlen,gocognit,cyclop // ok here
-func webclient() {
-	logger := log.GetLoggerManager().GetDefaultLogger()
-	statsLogger := log.GetLoggerManager().GetLogger("stats")
+//nolint:funlen,gocognit,cyclop,gocyclo // ok here
+func webclient(ctx context.Context) {
+	logger := log.GetFromContext(ctx)
+	statsLogger := logger.Named("stats")
 	configOptions := config.CollectStandardJobProcessorOptions()
 	var singleConn *grpc.ClientConn
 	if singleConnection {
@@ -65,7 +66,9 @@ func webclient() {
 		}
 		logger.Debug("connected to server")
 	}
+	summary := newWebclientStats(config.WorkerThreads, logger.Named("summary"))
 	configOptions = append(configOptions,
+		myStress.WithLogging(logger),
 		myStress.WithTargetClientProvider(func() *grpc.ClientConn {
 			if singleConnection {
 				return singleConn
@@ -83,25 +86,25 @@ func webclient() {
 			c := providerv1grpc.NewProviderServiceClient(j.TargetClient)
 			r, err := c.ListLiveEvents(context.Background(), &req)
 			if err != nil {
-				logger.Error("could not get live events", log.ErrorField(err))
+				j.Logger.Error("could not get live events", log.ErrorField(err))
 				return err
 			}
 			if len(r.Events) == 0 {
-				logger.Info("no events found")
+				j.Logger.Info("no events found")
 				time.Sleep(1 * time.Second)
 				return nil
 			}
 			//nolint:gosec // ok here
 			idx := rand.Intn(len(r.Events))
-			logger.Info("picked event", log.Uint32("id", r.Events[idx].Event.Id))
+			j.Logger.Info("picked event", log.Uint32("id", r.Events[idx].Event.Id))
 
 			opts := []simulate.Option{
 				simulate.WithClient(j.TargetClient),
 			}
 
-			var ctx context.Context
+			var jobCtx context.Context
 			var cancel context.CancelFunc
-			ctx, cancel = context.WithCancel(j.Ctx)
+			jobCtx, cancel = context.WithCancel(j.Ctx)
 
 			if jobDurationArg != "" {
 				if d, err := time.ParseDuration(jobDurationArg); err == nil {
@@ -109,20 +112,20 @@ func webclient() {
 						//nolint:gosec // ok here
 						d = time.Duration((1 + rand.Intn(int(d.Seconds()))) * int(time.Second))
 					}
-					ctx, cancel = context.WithTimeout(j.Ctx, d)
-					deadLine, _ := ctx.Deadline()
-					logger.Info("job param",
+					jobCtx, cancel = context.WithTimeout(j.Ctx, d)
+					deadLine, _ := jobCtx.Deadline()
+					j.Logger.Info("job param",
 						log.Duration("duration", d),
 						log.Time("deadline", deadLine))
 				}
 			}
 			defer cancel()
 
-			opts = append(opts, simulate.WithContext(ctx))
+			opts = append(opts, simulate.WithContext(jobCtx))
 			if config.WorkerProgressArg != "" {
 				if d, err := time.ParseDuration(config.WorkerProgressArg); err == nil {
 					opts = append(opts, simulate.WithStatsCallback(d, func(s *simulate.Stats) {
-						logger.Info("stats", log.Any("stats", s))
+						j.Logger.Info("stats", log.Any("stats", s))
 					}))
 				}
 			}
@@ -131,17 +134,66 @@ func webclient() {
 			sel := util.ResolveEvent(r.Events[idx].Event.Key)
 
 			if wcErr := wc.Start(sel); wcErr == nil {
+				stats := wc.GetStats()
 				statsLogger.Info("webclient finished",
 					log.Int("jobId", j.Id),
 					log.Int("workerId", j.WorkerId),
-					log.Any("stats", wc.GetStats()))
+					log.Any("stats", stats))
+				summary.addStats(j.WorkerId, &stats)
 			}
 
 			return nil
 		}),
 	)
 	start := time.Now()
+
+	ticker := time.NewTicker(10 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("testDuration reached, terminating workerProgress")
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				logger.Info("About to show progress of workers")
+				summary.output()
+			}
+		}
+	}()
+
 	jobProcessor := myStress.NewJobProcessor(configOptions...)
 	jobProcessor.Run()
 	logger.Info("job processor finished", log.Duration("duration", time.Since(start)))
+	summary.output()
+}
+
+type webclientStats struct {
+	stats  []simulate.Stats
+	mu     sync.Mutex
+	logger *log.Logger
+}
+
+func newWebclientStats(numWorker int, logger *log.Logger) *webclientStats {
+	return &webclientStats{
+		stats:  make([]simulate.Stats, numWorker),
+		mu:     sync.Mutex{},
+		logger: logger,
+	}
+}
+
+func (w *webclientStats) output() {
+	for i := range w.stats {
+		w.logger.Info("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
+	}
+}
+
+func (w *webclientStats) addStats(workerId int, s *simulate.Stats) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	item := &w.stats[workerId]
+	item.Analysis.Add(&s.Analysis)
+	item.Driver.Add(&s.Driver)
+	item.Speedmap.Add(&s.Speedmap)
+	item.State.Add(&s.State)
 }

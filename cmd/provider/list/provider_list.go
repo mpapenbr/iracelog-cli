@@ -18,14 +18,14 @@ func NewProviderListCmd() *cobra.Command {
 		Short: "lists current data provider.",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listEvents()
+			return listEvents(cmd.Context())
 		},
 	}
 	return cmd
 }
 
-func listEvents() error {
-	logger := log.GetLoggerManager().GetDefaultLogger()
+func listEvents(ctx context.Context) error {
+	logger := log.GetFromContext(ctx)
 	logger.Debug("connect grpc server ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {

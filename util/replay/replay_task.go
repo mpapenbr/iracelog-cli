@@ -36,7 +36,7 @@ func NewReplayTask(
 	ret := &ReplayTask{
 		dataProvider: dataProvider,
 		dest:         dest,
-		myLog:        log.GetLoggerManager().GetDefaultLogger(),
+		myLog:        log.Default(),
 		ctx:          context.Background(),
 	}
 	for _, opt := range opts {
@@ -69,9 +69,9 @@ func WithContext(ctx context.Context) ReplayOption {
 	}
 }
 
-func WithLogging() ReplayOption {
+func WithLogging(logger *log.Logger) ReplayOption {
 	return func(r *ReplayTask) {
-		r.myLog = log.GetLoggerManager().GetLogger("replay")
+		r.myLog = logger.Named("replay")
 	}
 }
 
@@ -188,19 +188,19 @@ func (r *ReplayTask) sendData() {
 		&peekStateData{
 			commonStateData[racestatev1.PublishStateRequest]{
 				r: r, dataChan: r.stateChan, providerType: StateData,
-				logger: log.GetLoggerManager().GetLogger("replay.state"),
+				logger: r.myLog.Named("state"),
 			},
 		},
 		&peekDriverData{
 			commonStateData[racestatev1.PublishDriverDataRequest]{
 				r: r, dataChan: r.driverDataChan, providerType: DriverData,
-				logger: log.GetLoggerManager().GetLogger("replay.driver"),
+				logger: r.myLog.Named("driver"),
 			},
 		},
 		&peekSpeedmapData{
 			commonStateData[racestatev1.PublishSpeedmapRequest]{
 				r: r, dataChan: r.speedmapChan, providerType: SpeedmapData,
-				logger: log.GetLoggerManager().GetLogger("replay.speedmap"),
+				logger: r.myLog.Named("speedmap"),
 			},
 		},
 	)

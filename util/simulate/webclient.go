@@ -70,7 +70,7 @@ func WithStatsCallback(d time.Duration, callback func(*Stats)) Option {
 
 func NewWebclient(opts ...Option) *Webclient {
 	w := &Webclient{
-		logger:    log.GetLoggerManager().GetLogger("webclient"),
+		logger:    log.Default().Named("webclient"),
 		wg:        sync.WaitGroup{},
 		maxErrors: 5,
 	}
@@ -117,7 +117,7 @@ func (w *Webclient) GetStats() Stats {
 func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
-	myLogger := log.GetLoggerManager().GetLogger("webclient.analysis")
+	myLogger := w.logger.Named("analysis")
 	req := livedatav1.LiveAnalysisSelRequest{
 		Event: event,
 		Selector: &livedatav1.AnalysisSelector{
@@ -185,7 +185,7 @@ func (w *Webclient) liveAnalysis(event *commonv1.EventSelector) {
 func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
-	myLogger := log.GetLoggerManager().GetLogger("webclient.states")
+	myLogger := w.logger.Named("states")
 	req := livedatav1.LiveRaceStateRequest{Event: event}
 
 	r, err := w.live.LiveRaceState(w.ctx, &req)
@@ -239,7 +239,7 @@ func (w *Webclient) liveRaceStates(event *commonv1.EventSelector) {
 func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
-	myLogger := log.GetLoggerManager().GetLogger("webclient.speedmaps")
+	myLogger := w.logger.Named("speedmaps")
 	req := livedatav1.LiveSpeedmapRequest{Event: event}
 
 	r, err := w.live.LiveSpeedmap(w.ctx, &req)
@@ -293,7 +293,7 @@ func (w *Webclient) liveSpeedmaps(event *commonv1.EventSelector) {
 func (w *Webclient) liveDriverData(event *commonv1.EventSelector) {
 	defer w.wg.Done()
 
-	myLogger := log.GetLoggerManager().GetLogger("webclient.driver")
+	myLogger := w.logger.Named("driver")
 	req := livedatav1.LiveDriverDataRequest{Event: event}
 
 	r, err := w.live.LiveDriverData(w.ctx, &req)
@@ -340,4 +340,9 @@ func (w *Webclient) liveDriverData(event *commonv1.EventSelector) {
 			}
 		}
 	}
+}
+
+func (ds *DataStat) Add(other *DataStat) {
+	ds.Count += other.Count
+	ds.Bytes += other.Bytes
 }

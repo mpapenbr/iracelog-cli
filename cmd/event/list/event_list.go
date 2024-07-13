@@ -22,14 +22,14 @@ func NewEventListCmd() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			listEvents()
+			listEvents(cmd.Context())
 		},
 	}
 	return cmd
 }
 
-func listEvents() {
-	logger := log.GetLoggerManager().GetDefaultLogger()
+func listEvents(ctx context.Context) {
+	logger := log.GetFromContext(ctx)
 	logger.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
 	if err != nil {
