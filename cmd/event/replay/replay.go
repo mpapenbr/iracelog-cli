@@ -58,21 +58,20 @@ func NewEventReplayCmd() *cobra.Command {
 
 //nolint:funlen,gocognit,cyclop //by design
 func replayEvent(arg string) {
-	logger := log.GetLoggerManager().GetDefaultLogger()
-	logger.Info("connect source server", log.String("addr", cfg.SourceAddr))
+	log.Info("connect source server", log.String("addr", cfg.SourceAddr))
 	source, err := util.ConnectGrpcWithParam(cfg.SourceAddr, cfg.SourceInsecure)
 	if err != nil {
-		logger.Error("did not connect", log.ErrorField(err))
+		log.Error("did not connect", log.ErrorField(err))
 		return
 	}
 	defer source.Close()
 
-	logger.Info("connect dest server", log.String("addr", config.DefaultCliArgs().Addr))
+	log.Info("connect dest server", log.String("addr", config.DefaultCliArgs().Addr))
 	dest, err := util.ConnectGrpcWithParam(
 		config.DefaultCliArgs().Addr,
 		config.DefaultCliArgs().Insecure)
 	if err != nil {
-		logger.Error("did not connect", log.ErrorField(err))
+		log.Error("did not connect", log.ErrorField(err))
 		return
 	}
 	defer dest.Close()
@@ -85,11 +84,11 @@ func replayEvent(arg string) {
 	c := eventv1grpc.NewEventServiceClient(source)
 	e, err := c.GetEvent(ctx, &req)
 	if err != nil {
-		logger.Error("could not load event", log.ErrorField(err), log.String("event", arg))
+		log.Error("could not load event", log.ErrorField(err), log.String("event", arg))
 		return
 	}
 
-	logger.Info("Event loaded.",
+	log.Info("Event loaded.",
 		log.String("event", e.Event.Name),
 		log.Uint32("id", e.Event.Id))
 
@@ -120,7 +119,7 @@ func replayEvent(arg string) {
 		if ffDur, err := time.ParseDuration(cfg.FastForward); err == nil {
 			opts = append(opts, replay.WithFastForward(ffDur))
 		} else {
-			logger.Warn("Parse error for fast-forward. Ignoring",
+			log.Warn("Parse error for fast-forward. Ignoring",
 				log.String("duration", cfg.FastForward))
 		}
 	}
@@ -129,10 +128,10 @@ func replayEvent(arg string) {
 			return cfg.Token
 		}))
 	}
-	opts = append(opts, replay.WithLogging())
+	opts = append(opts, replay.WithLogging(log.Default()))
 
 	r := replay.NewReplayTask(dest, dp, opts...)
 	if err := r.Replay(e.Event.Id); err != nil {
-		logger.Error("Error replaying event", log.ErrorField(err))
+		log.Error("Error replaying event", log.ErrorField(err))
 	}
 }

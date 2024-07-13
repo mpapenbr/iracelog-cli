@@ -36,7 +36,7 @@ func NewStressReplayCmd() *cobra.Command {
 		Use:   "replay",
 		Short: "simulate a set of data providers by replaying events",
 		Run: func(cmd *cobra.Command, args []string) {
-			replay()
+			replay(cmd.Context())
 		},
 	}
 	cmd.PersistentFlags().IntVar(&cfg.Speed, "speed", 1,
@@ -74,10 +74,11 @@ func NewStressReplayCmd() *cobra.Command {
 // - done
 //
 //nolint:funlen,gocognit,cyclop // ok here
-func replay() {
-	logger := log.GetLoggerManager().GetDefaultLogger()
+func replay(ctx context.Context) {
+	logger := log.GetFromContext(ctx)
 	configOptions := config.CollectStandardJobProcessorOptions()
 	configOptions = append(configOptions,
+		myStress.WithLogging(logger),
 		myStress.WithSourceClientProvider(func() *grpc.ClientConn {
 			c, err := util.ConnectGrpcWithParam(cfg.SourceAddr, cfg.SourceInsecure)
 			if err != nil {
@@ -99,16 +100,16 @@ func replay() {
 			c := eventv1grpc.NewEventServiceClient(j.SourceClient)
 			r, err := c.GetLatestEvents(context.Background(), &req)
 			if err != nil {
-				logger.Error("could not get events", log.ErrorField(err))
+				j.Logger.Error("could not get events", log.ErrorField(err))
 				return err
 			}
 			if len(r.Events) == 0 {
-				logger.Info("no events found")
+				j.Logger.Info("no events found")
 				return nil
 			}
 			//nolint:gosec // ok here
 			idx := rand.Intn(len(r.Events))
-			logger.Info("picked event", log.Uint32("id", r.Events[idx].Id))
+			j.Logger.Info("picked event", log.Uint32("id", r.Events[idx].Id))
 			e := r.Events[idx]
 
 			reqEvent := eventv1.GetEventRequest{
@@ -119,7 +120,7 @@ func replay() {
 			var eventResp *eventv1.GetEventResponse
 			eventResp, err = c.GetEvent(context.Background(), &reqEvent)
 			if err != nil {
-				logger.Error("could not get events", log.ErrorField(err))
+				j.Logger.Error("could not get events", log.ErrorField(err))
 				return err
 			}
 			opts := []utilReplay.ReplayOption{}
@@ -136,7 +137,7 @@ func replay() {
 					}
 					ctx, cancel = context.WithTimeout(j.Ctx, d)
 					deadLine, _ := ctx.Deadline()
-					logger.Info("job param",
+					j.Logger.Info("job param",
 						log.Duration("duration", d),
 						log.Time("deadline", deadLine))
 				}
@@ -147,7 +148,7 @@ func replay() {
 				if ffDur, err := time.ParseDuration(cfg.FastForward); err == nil {
 					opts = append(opts, utilReplay.WithFastForward(ffDur))
 				} else {
-					logger.Warn("Parse error for fast-forward. Ignoring",
+					j.Logger.Warn("Parse error for fast-forward. Ignoring",
 						log.String("duration", cfg.FastForward))
 				}
 			}
@@ -164,7 +165,7 @@ func replay() {
 			// if config.WorkerProgressArg != "" {
 			// 	if d, err := time.ParseDuration(config.WorkerProgressArg); err == nil {
 			// 		opts = append(opts, utilReplay.WithStatsCallback(d, func(s *simulate.Stats) {
-			// 			logger.Info("stats", log.Any("stats", s))
+			// 			log.Info("stats", log.Any("stats", s))
 			// 		}))
 			// 	}
 			// }
@@ -189,7 +190,7 @@ func replay() {
 
 			rt := utilReplay.NewReplayTask(j.TargetClient, dp, opts...)
 			if err := rt.Replay(e.Id); err != nil {
-				logger.Error("error replaying event", log.ErrorField(err))
+				j.Logger.Error("error replaying event", log.ErrorField(err))
 			}
 
 			return nil

@@ -1,6 +1,7 @@
 package dummy
 
 import (
+	"context"
 	"errors"
 	"math/rand"
 	"time"
@@ -17,23 +18,28 @@ func NewStressDummyCmd() *cobra.Command {
 		Use:   "dummy",
 		Short: "dummy to test stress component ",
 		Run: func(cmd *cobra.Command, args []string) {
-			experimental()
+			experimental(cmd.Context())
 		},
 	}
 
 	return cmd
 }
 
-func experimental() {
-	logger := log.GetLoggerManager().GetDefaultLogger()
+func experimental(ctx context.Context) {
+	logger := log.GetFromContext(ctx)
+	logger.Info("starting stress test")
 	configOptions := config.CollectStandardJobProcessorOptions()
 	configOptions = append(configOptions,
-		//nolint:gosec // by design
+
+		myStress.WithLogging(logger),
+		//nolint:gosec // ok here
 		myStress.WithJobHandler(func(j *myStress.Job) error {
-			logger.Debug("about to sleep", log.Int("jobId", j.Id))
+			j.Logger.Debug("about to sleep", log.Int("jobId", j.Id))
 			waitTime := 100 + rand.Intn(100)
 			time.Sleep(time.Duration(waitTime) * time.Millisecond)
-			logger.Debug("done sleeping", log.Int("jobId", j.Id), log.Time("myTime", time.Now()))
+			j.Logger.Debug("done sleeping",
+				log.Int("jobId", j.Id),
+				log.Time("myTime", time.Now()))
 			if rand.Intn(5) == 0 {
 				return errors.New("simulated error")
 			}

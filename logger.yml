@@ -1,9 +1,19 @@
-defaultLevel: info
-loggers:
-  "stress.worker": "info"
-  "stress.processor": "info"
-  "replay": "info"
-  "replay.fetcher.driver": "info"
-  "replay.state": "info"
-  "webclient.driver": "info"
-  # "dummy": "error"
+zap:
+  level: "info"
+  development: true
+  encoding: "console"
+  outputPaths:
+    - "stdout"
+  errorOutputPaths:
+    - "stderr"
+  encoderConfig:
+    levelEncoder: "color"
+    stacktraceKey: ""
+    callerKey: ""
+    timeEncoder:
+      layout: "15:04:05.000"
+    durationEncoder: "string"
+    # consoleSeparator: "\t"
+filters:
+  # - "info+:*"
+  # - "*:stress.worker.*"

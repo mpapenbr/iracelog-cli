@@ -22,7 +22,7 @@ func NewDataProvider(
 ) ReplayDataProvider {
 	service := racestatev1grpc.NewRaceStateServiceClient(source)
 	getLogger := func(name string) *log.Logger {
-		return log.GetLoggerManager().GetLogger("replay.fetcher." + name)
+		return log.Default().Named("replay").Named(name)
 	}
 	ret := &dataProviderImpl{
 		source:               source,

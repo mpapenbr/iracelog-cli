@@ -3,7 +3,6 @@ package config
 import (
 	"time"
 
-	"github.com/mpapenbr/iracelog-cli/log"
 	myStress "github.com/mpapenbr/iracelog-cli/stress"
 )
 
@@ -32,7 +31,5 @@ func CollectStandardJobProcessorOptions() []myStress.OptionFunc {
 		ret = append(ret, myStress.WithWorkerProgress(workerProgress))
 	}
 
-	ret = append(ret, myStress.WithLogging(
-		log.Default()))
 	return ret
 }

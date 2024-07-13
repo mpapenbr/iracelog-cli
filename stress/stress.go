@@ -2,10 +2,12 @@ package stress
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/mpapenbr/iracelog-cli/log"
@@ -17,6 +19,7 @@ type Job struct {
 	TargetClient *grpc.ClientConn // used for communication with target backend
 	SourceClient *grpc.ClientConn // used for communication with source backend (if needed)
 	Ctx          context.Context  // used for cancellation
+	Logger       *log.Logger      // used for logging
 }
 
 type JobResult struct {
@@ -35,6 +38,7 @@ type WorkerStats struct {
 	JobsDone int
 	Errors   []JobError
 	TimeUsed time.Duration
+	Logger   *log.Logger
 }
 
 type (
@@ -96,8 +100,8 @@ func WithWorkerProgress(duration time.Duration) OptionFunc {
 
 func WithLogging(logger *log.Logger) OptionFunc {
 	return func(sp *JobProcessor) {
-		sp.wLogger = log.GetLoggerManager().GetLogger("stress.worker")
-		sp.pLogger = log.GetLoggerManager().GetLogger("stress.processor")
+		sp.pLogger = logger.Named("stress")
+		sp.wLogger = sp.pLogger.Named("worker")
 	}
 }
 
@@ -123,6 +127,8 @@ func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 		queue:      make(chan *Job),
 		results:    make(chan *JobResult),
 		doSchedule: true,
+		pLogger:    log.Default(),
+		wLogger:    log.Default(),
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -147,7 +153,12 @@ func (p *JobProcessor) Run() {
 	p.pLogger.Info("initialize worker", log.Int("worker", p.numWorker))
 	for i := 0; i < p.numWorker; i++ {
 		p.wgWorker.Add(1)
-		workerStats := WorkerStats{Id: i}
+		workerStats := WorkerStats{
+			Id: i,
+			Logger: p.wLogger.Named(fmt.Sprintf("%d", i)).WithOptions(
+				zap.Fields(log.Int("worker", i)),
+			),
+		}
 		p.workerStats = append(p.workerStats, workerStats)
 		go p.jobWorker(workerStats, workerCtx)
 	}
@@ -202,6 +213,7 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 
 			ws := &p.workerStats[result.Request.WorkerId]
 			ws.JobsDone++
+			ws.TimeUsed += result.TimeUsed
 			if result.Error != nil {
 				ws.Errors = append(ws.Errors, JobError{
 					JobId: result.Request.Id, Error: result.Error,
@@ -254,6 +266,7 @@ func (p *JobProcessor) jobWorker(
 			job.TargetClient = targetClient
 			job.SourceClient = sourceClient
 			job.Ctx = ctx
+			job.Logger = workerStats.Logger
 			p.executeJob(job)
 		}
 	}
@@ -278,9 +291,9 @@ func (p *JobProcessor) logWorkerProgress(ticker *time.Ticker, ctx context.Contex
 
 			//nolint:gocritic // false positive
 			for _, item := range p.workerStats {
-				p.wLogger.Info("progress",
-					log.Int("worker", item.Id),
+				item.Logger.Info("progress",
 					log.Int("jobsDone", item.JobsDone),
+					log.Duration("timeUsed", item.TimeUsed),
 					log.Int("errors", len(item.Errors)),
 				)
 			}

@@ -26,7 +26,7 @@ func NewLiveWebclientCmd() *cobra.Command {
 		},
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			liveWebclient(args[0])
+			liveWebclient(cmd.Context(), args[0])
 		},
 	}
 	cmd.Flags().StringVarP(&durationArg,
@@ -37,8 +37,8 @@ func NewLiveWebclientCmd() *cobra.Command {
 	return cmd
 }
 
-func liveWebclient(eventArg string) {
-	logger := log.GetLoggerManager().GetDefaultLogger()
+func liveWebclient(mainCtx context.Context, eventArg string) {
+	logger := log.GetFromContext(mainCtx)
 
 	sel := util.ResolveEvent(eventArg)
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())

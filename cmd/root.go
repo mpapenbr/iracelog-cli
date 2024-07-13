@@ -5,6 +5,7 @@ Copyright 2024 Markus Papenbrock
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -32,12 +33,24 @@ var rootCmd = &cobra.Command{
 	Short:   "Command line interface for iRacelog",
 	Long:    ``,
 	Version: version.FullVersion,
+
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// util.SetupLogger(config.DefaultCliArgs())
-		if _, err := log.InitLoggerManager(config.DefaultCliArgs()); err != nil {
-			fmt.Fprintf(os.Stderr, "Error initializing logger: %v", err)
-			os.Exit(1)
+		// if _, err := log.InitLoggerManager(config.DefaultCliArgs()); err != nil {
+		// 	fmt.Fprintf(os.Stderr, "Error initializing logger: %v", err)
+		// 	os.Exit(1)
+		// }
+		logConfig := log.DefaultDevConfig()
+		if config.DefaultCliArgs().LogConfig != "" {
+			var err error
+			logConfig, err = log.LoadConfig(config.DefaultCliArgs().LogConfig)
+			if err != nil {
+				log.Fatal("could not load log config", log.ErrorField(err))
+			}
 		}
+		l := log.NewWithConfig(logConfig, config.DefaultCliArgs().LogLevel)
+		cmd.SetContext(log.AddToContext(context.Background(), l))
+		log.ResetDefault(l)
 	},
 
 	// Uncomment the following line if your bare application
@@ -69,7 +82,7 @@ func init() {
 		"allow insecure (non-tls) gRPC connections (used for development only)")
 	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogConfig,
 		"log-config",
-		"logger.yml",
+		"",
 		"configuration file for logger")
 	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().LogLevel,
 		"log-level",
