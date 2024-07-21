@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	eventv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/event/v1/eventv1grpc"
 	eventv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/event/v1"
@@ -38,7 +39,9 @@ func listEvents(ctx context.Context) {
 	defer conn.Close()
 	req := eventv1.GetEventsRequest{}
 	c := eventv1grpc.NewEventServiceClient(conn)
-	r, err := c.GetEvents(context.Background(), &req)
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	r, err := c.GetEvents(reqCtx, &req)
 	if err != nil {
 		logger.Error("could not get events", log.ErrorField(err))
 		return
