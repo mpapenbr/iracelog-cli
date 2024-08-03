@@ -16,9 +16,10 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.4.0-20240623151922-fb549bddc8ee.2
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20240623151922-fb549bddc8ee.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
+	moul.io/zapfilter v1.7.0
 )
 
 require (
@@ -41,5 +42,4 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	moul.io/zapfilter v1.7.0 // indirect
 )
