@@ -42,7 +42,8 @@ type WorkerStats struct {
 }
 
 type (
-	JobHandler func(j *Job) error
+	JobHandler    func(j *Job) error
+	FinishHandler func()
 )
 
 type JobProcessor struct {
@@ -60,6 +61,7 @@ type JobProcessor struct {
 	workerProgress       time.Duration // show worker progress if > 0
 	targetClientProvider func() *grpc.ClientConn
 	sourceClientProvider func() *grpc.ClientConn
+	finishHandler        FinishHandler
 
 	// collector   dvlResultsCollector
 	workerStats []WorkerStats
@@ -71,6 +73,12 @@ type OptionFunc func(sp *JobProcessor)
 func WithJobHandler(handler JobHandler) OptionFunc {
 	return func(sp *JobProcessor) {
 		sp.jobHandler = handler
+	}
+}
+
+func WithFinishHandler(handler FinishHandler) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.finishHandler = handler
 	}
 }
 
@@ -192,6 +200,12 @@ func (p *JobProcessor) Run() {
 	p.pLogger.Debug("Waiting for jobs to terminate")
 	p.wgWorker.Wait()
 	p.pLogger.Info("All jobs finished")
+	if p.finishHandler != nil {
+		p.pLogger.Debug("Calling finishHandler")
+		p.finishHandler()
+		p.pLogger.Debug("Returned from finishHandler")
+	}
+	p.pLogger.Info("End of job processor")
 }
 
 //nolint:gocognit // false positive

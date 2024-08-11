@@ -1,5 +1,5 @@
 zap:
-  level: "info"
+  level: "debug"
   development: true
   encoding: "console"
   outputPaths:
@@ -15,5 +15,7 @@ zap:
     durationEncoder: "string"
     # consoleSeparator: "\t"
 filters:
-  # - "info+:*"
-  # - "*:stress.worker.*"
+  - "info+:webclient"
+  - "info+:stress"
+  - "info+:stress.worker.*"
+  - "warn:summary"

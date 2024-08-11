@@ -3,16 +3,17 @@ package config
 import "fmt"
 
 type CliArgs struct {
-	Addr         string   // ism gRPC address
-	Insecure     bool     // connect to gRPC server without TLS
-	LogConfig    string   // log config file
-	LogLevel     string   // sets the log level (zap log level values)
-	LogFormat    string   // text vs json
-	LogFile      string   // log file to write to
-	Token        string   // token for authentication
-	Event        string   // take event argument
-	Components   []string // takes components for analysis selector
-	DoNotPersist bool     // do not persist the recorded data (used for debugging)
+	Addr               string   // ism gRPC address
+	Insecure           bool     // connect to gRPC server without TLS
+	LogConfig          string   // log config file
+	LogLevel           string   // sets the log level (zap log level values)
+	LogFormat          string   // text vs json
+	LogFile            string   // log file to write to
+	Token              string   // token for authentication
+	Event              string   // take event argument
+	Components         []string // takes components for analysis selector
+	DoNotPersist       bool     // do not persist the recorded data (used for debugging)
+	InsecureSkipVerify bool     // skip verification of server certificate
 }
 
 func (c *CliArgs) Dump() {

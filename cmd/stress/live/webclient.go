@@ -69,6 +69,11 @@ func webclient(ctx context.Context) {
 	summary := newWebclientStats(config.WorkerThreads, logger.Named("summary"))
 	configOptions = append(configOptions,
 		myStress.WithLogging(logger),
+		myStress.WithFinishHandler(func() {
+			logger.Info("finish handler called")
+			// ctx.Done()
+		}),
+		myStress.WithWorkerProgress(30*time.Second),
 		myStress.WithTargetClientProvider(func() *grpc.ClientConn {
 			if singleConnection {
 				return singleConn
@@ -82,9 +87,11 @@ func webclient(ctx context.Context) {
 			}
 		}),
 		myStress.WithJobHandler(func(j *myStress.Job) error {
+			d, ok := j.Ctx.Deadline()
+			j.Logger.Info("deadline", log.Time("deadline", d), log.Bool("ok", ok))
 			req := providerv1.ListLiveEventsRequest{}
 			c := providerv1grpc.NewProviderServiceClient(j.TargetClient)
-			r, err := c.ListLiveEvents(context.Background(), &req)
+			r, err := c.ListLiveEvents(j.Ctx, &req)
 			if err != nil {
 				j.Logger.Error("could not get live events", log.ErrorField(err))
 				return err
@@ -140,6 +147,8 @@ func webclient(ctx context.Context) {
 					log.Int("workerId", j.WorkerId),
 					log.Any("stats", stats))
 				summary.addStats(j.WorkerId, &stats)
+			} else {
+				j.Logger.Error("webclient failed", log.ErrorField(wcErr))
 			}
 
 			return nil
@@ -147,7 +156,7 @@ func webclient(ctx context.Context) {
 	)
 	start := time.Now()
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(10 * time.Hour)
 	go func() {
 		for {
 			select {
@@ -184,7 +193,7 @@ func newWebclientStats(numWorker int, logger *log.Logger) *webclientStats {
 
 func (w *webclientStats) output() {
 	for i := range w.stats {
-		w.logger.Info("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
+		w.logger.Warn("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
 	}
 }
 

@@ -92,6 +92,10 @@ func init() {
 		"log-format",
 		"text",
 		"controls the log output format (json, text)")
+	rootCmd.PersistentFlags().BoolVar(&config.DefaultCliArgs().InsecureSkipVerify,
+		"insecure-skip-verify",
+		false,
+		"skip verification of server certificate (used for development only)")
 
 	rootCmd.AddCommand(event.NewEventCmd())
 	rootCmd.AddCommand(provider.NewProviderCmd())
