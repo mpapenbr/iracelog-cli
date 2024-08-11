@@ -1,4 +1,5 @@
 # This file is used by goreleaser
-FROM scratch
+FROM alpine:3.20
 ENTRYPOINT ["/iracelog-cli"]
 COPY iracelog-cli /
+COPY samples /
