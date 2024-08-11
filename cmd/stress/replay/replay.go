@@ -80,7 +80,7 @@ func replay(ctx context.Context) {
 	configOptions = append(configOptions,
 		myStress.WithLogging(logger),
 		myStress.WithSourceClientProvider(func() *grpc.ClientConn {
-			c, err := util.ConnectGrpcWithParam(cfg.SourceAddr, cfg.SourceInsecure)
+			c, err := util.ConnectGrpcWithParam(cfg.SourceAddr, cfg.SourceInsecure, false)
 			if err != nil {
 				logger.Fatal("could not connect source server", log.ErrorField(err))
 			}
