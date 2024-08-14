@@ -66,6 +66,7 @@ func Execute() {
 	}
 }
 
+//nolint:funlen // false positive
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -92,10 +93,22 @@ func init() {
 		"log-format",
 		"text",
 		"controls the log output format (json, text)")
-	rootCmd.PersistentFlags().BoolVar(&config.DefaultCliArgs().InsecureSkipVerify,
-		"insecure-skip-verify",
+	rootCmd.PersistentFlags().BoolVar(&config.DefaultCliArgs().TLSSkipVerify,
+		"tls-skip-verify",
 		false,
 		"skip verification of server certificate (used for development only)")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().TLSKey,
+		"tls-key",
+		"",
+		"path to TLS key")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().TLSCert,
+		"tls-cert",
+		"",
+		"path to TLS cert")
+	rootCmd.PersistentFlags().StringVar(&config.DefaultCliArgs().TLSCa,
+		"tls-ca",
+		"",
+		"path to TLS root certificate")
 
 	rootCmd.AddCommand(event.NewEventCmd())
 	rootCmd.AddCommand(provider.NewProviderCmd())

@@ -59,7 +59,9 @@ func NewEventReplayCmd() *cobra.Command {
 //nolint:funlen,gocognit,cyclop //by design
 func replayEvent(arg string) {
 	log.Info("connect source server", log.String("addr", cfg.SourceAddr))
-	source, err := util.ConnectGrpcWithParam(cfg.SourceAddr, cfg.SourceInsecure, false)
+	source, err := util.NewClient(
+		cfg.SourceAddr,
+		util.WithTLSEnabled(!cfg.SourceInsecure))
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return
@@ -67,10 +69,9 @@ func replayEvent(arg string) {
 	defer source.Close()
 
 	log.Info("connect dest server", log.String("addr", config.DefaultCliArgs().Addr))
-	dest, err := util.ConnectGrpcWithParam(
+	dest, err := util.NewClient(
 		config.DefaultCliArgs().Addr,
-		config.DefaultCliArgs().Insecure,
-		config.DefaultCliArgs().InsecureSkipVerify)
+		util.WithCliArgs(config.DefaultCliArgs()))
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return
