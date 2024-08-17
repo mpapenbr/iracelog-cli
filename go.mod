@@ -11,12 +11,12 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240623151922-fb549bddc8ee.2
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240815092744-9ff8c9a4483a.2
 	github.com/google/uuid v1.6.0
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20240623151922-fb549bddc8ee.1
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20240815092744-9ff8c9a4483a.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
