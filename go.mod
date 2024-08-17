@@ -11,7 +11,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240623151922-fb549bddc8ee.2
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.34.2-20240815092744-9ff8c9a4483a.2
 	github.com/google/uuid v1.6.0
 )
 
