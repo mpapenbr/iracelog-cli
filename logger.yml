@@ -14,8 +14,8 @@ zap:
       layout: "15:04:05.000"
     durationEncoder: "string"
     # consoleSeparator: "\t"
-filters:
-  - "info+:webclient"
-  - "info+:stress"
-  - "info+:stress.worker.*"
-  - "warn:summary"
+loggers:
+  stress: "debug"
+  stress.worker: "info"
+  # stress.worker.\d+: "info"
+  stress.worker.0: "debug"
