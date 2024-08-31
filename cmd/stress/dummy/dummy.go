@@ -16,7 +16,7 @@ import (
 func NewStressDummyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dummy",
-		Short: "dummy to test stress component ",
+		Short: "dummy to test logger settings",
 		Run: func(cmd *cobra.Command, args []string) {
 			experimental(cmd.Context())
 		},

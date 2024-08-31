@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/mpapenbr/iracelog-cli/config"
+	"github.com/mpapenbr/iracelog-cli/log"
 )
 
 type (
@@ -84,14 +85,16 @@ func WithCliArgs(args *config.CliArgs) Option {
 }
 
 func NewClient(addr string, opts ...Option) (*grpc.ClientConn, error) {
-	param := &param{addr: addr}
+	param := &param{addr: addr, tlsEnabled: true}
 	for _, opt := range opts {
 		opt(param)
 	}
 	if !param.tlsEnabled {
+		log.Debug("TLS disabled")
 		return grpc.NewClient(addr,
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
+	log.Debug("TLS enabled")
 	// ok, we need to use TLS
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS13,
