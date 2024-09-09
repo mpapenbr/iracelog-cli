@@ -10,6 +10,13 @@ import (
 	"github.com/mpapenbr/iracelog-cli/config"
 	"github.com/mpapenbr/iracelog-cli/log"
 	"github.com/mpapenbr/iracelog-cli/util"
+	"github.com/mpapenbr/iracelog-cli/util/output"
+)
+
+var (
+	carNumFilter []string
+	components   []string
+	format       string
 )
 
 func NewEventLoadCmd() *cobra.Command {
@@ -24,6 +31,12 @@ func NewEventLoadCmd() *cobra.Command {
 			loadEvent(args[0])
 		},
 	}
+	cmd.Flags().StringSliceVar(&carNumFilter, "filter-carnum", []string{},
+		"filter cars by car number")
+	cmd.Flags().StringSliceVar(&components, "components", []string{},
+		"components to display")
+	cmd.Flags().StringVar(&format, "format", "text",
+		"output format (text, json,csv)")
 
 	return cmd
 }
@@ -42,9 +55,30 @@ func loadEvent(arg string) {
 
 	ctx := context.Background()
 	c := eventv1grpc.NewEventServiceClient(conn)
-	if _, err := c.GetEvent(ctx, &req); err != nil {
+	var resp *eventv1.GetEventResponse
+	if resp, err = c.GetEvent(ctx, &req); err != nil {
 		log.Error("could not load event", log.ErrorField(err), log.String("event", arg))
 		return
 	}
 	log.Info("Event loaded.")
+	opts := []output.Option{}
+	if len(carNumFilter) > 0 {
+		opts = append(opts, output.WithCarNumFilter(carNumFilter))
+	}
+	if format != "" {
+		if f, err := output.ParseFormat(format); err == nil {
+			opts = append(opts, output.WithFormat(f))
+		}
+	}
+	if len(components) > 0 {
+		comps := []output.Component{}
+		for _, c := range components {
+			v, _ := output.ParseComponent(c)
+			comps = append(comps, v)
+		}
+		opts = append(opts, output.WithComponents(comps))
+	}
+
+	out := output.NewEventOutput(resp, opts...)
+	out.Output()
 }
