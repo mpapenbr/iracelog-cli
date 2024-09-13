@@ -48,8 +48,11 @@ type (
 
 type JobProcessor struct {
 	numWorker            int
+	currentWorker        int
 	pause                time.Duration
 	duration             time.Duration // max time the JobProcessor is running
+	rampUpIncrease       int
+	rampUpDuration       time.Duration
 	wgWorker             sync.WaitGroup
 	wgResult             sync.WaitGroup
 	queue                chan *Job
@@ -106,6 +109,18 @@ func WithWorkerProgress(duration time.Duration) OptionFunc {
 	}
 }
 
+func WithRampUpDuration(duration time.Duration) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.rampUpDuration = duration
+	}
+}
+
+func WithRampUpIncrease(num int) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.rampUpIncrease = num
+	}
+}
+
 func WithLogging(logger *log.Logger) OptionFunc {
 	return func(sp *JobProcessor) {
 		sp.pLogger = logger.Named("stress")
@@ -127,16 +142,17 @@ func WithSourceClientProvider(provider func() *grpc.ClientConn) OptionFunc {
 
 func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 	ret := &JobProcessor{
-		numWorker:  1,
-		pause:      time.Second,
-		duration:   time.Minute * 10,
-		wgWorker:   sync.WaitGroup{},
-		wgResult:   sync.WaitGroup{},
-		queue:      make(chan *Job),
-		results:    make(chan *JobResult),
-		doSchedule: true,
-		pLogger:    log.Default(),
-		wLogger:    log.Default(),
+		numWorker:     1,
+		currentWorker: 0,
+		pause:         time.Second,
+		duration:      time.Minute * 10,
+		wgWorker:      sync.WaitGroup{},
+		wgResult:      sync.WaitGroup{},
+		queue:         make(chan *Job),
+		results:       make(chan *JobResult),
+		doSchedule:    true,
+		pLogger:       log.Default(),
+		wLogger:       log.Default(),
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -157,25 +173,25 @@ func (p *JobProcessor) Run() {
 
 	// setup result collector
 	go p.resultCollector(ctx)
-
-	p.pLogger.Info("initialize worker", log.Int("worker", p.numWorker))
-	for i := 0; i < p.numWorker; i++ {
-		p.wgWorker.Add(1)
-		workerStats := WorkerStats{
-			Id: i,
-			Logger: p.wLogger.Named(fmt.Sprintf("%d", i)).WithOptions(
-				zap.Fields(log.Int("worker", i)),
-			),
+	if p.rampUpDuration > 0 && p.rampUpIncrease > 0 {
+		p.pLogger.Info("Ramping up workers",
+			log.Int("increase", p.rampUpIncrease),
+			log.Duration("duration", p.rampUpDuration))
+		initWorker := 1
+		p.currentWorker = initWorker
+		for i := 0; i < initWorker; i++ {
+			p.addWorker(workerCtx, i)
 		}
-		p.workerStats = append(p.workerStats, workerStats)
-		go p.jobWorker(workerStats, workerCtx)
-	}
+		p.addJobs(initWorker)
 
-	// create initial jobs and add them to the queue
-	for p.nextJobId = 1; p.nextJobId <= p.numWorker; p.nextJobId++ {
-		p.queue <- &Job{Id: p.nextJobId}
+		go p.rampUp(workerCtx)
+	} else {
+		p.pLogger.Info("initialize worker", log.Int("worker", p.numWorker))
+		for i := 0; i < p.numWorker; i++ {
+			p.addWorker(workerCtx, i)
+		}
+		p.addJobs(p.numWorker)
 	}
-
 	// setup worker progress report if requested
 	if p.workerProgress > 0 {
 		ticker := time.NewTicker(p.workerProgress)
@@ -206,6 +222,46 @@ func (p *JobProcessor) Run() {
 		p.pLogger.Debug("Returned from finishHandler")
 	}
 	p.pLogger.Info("End of job processor")
+}
+
+func (p *JobProcessor) rampUp(ctx context.Context) {
+	for {
+		time.Sleep(p.rampUpDuration)
+		select {
+		case <-ctx.Done():
+			p.pLogger.Info("Ramp up terminated by context")
+			return
+		default:
+			if p.currentWorker >= p.numWorker {
+				p.pLogger.Info("Ramp up done")
+				return
+			}
+			p.addWorker(ctx, p.currentWorker)
+			p.currentWorker++
+			p.addJobs(1)
+			p.pLogger.Debug("waiting for next rampup iteration",
+				log.Duration("duration", p.rampUpDuration))
+		}
+	}
+}
+
+func (p *JobProcessor) addWorker(ctx context.Context, workerId int) {
+	p.wgWorker.Add(1)
+	workerStats := WorkerStats{
+		Id: workerId,
+		Logger: p.wLogger.Named(fmt.Sprintf("%d", workerId)).WithOptions(
+			zap.Fields(log.Int("worker", workerId)),
+		),
+	}
+	p.workerStats = append(p.workerStats, workerStats)
+	go p.jobWorker(workerStats, ctx)
+}
+
+func (p *JobProcessor) addJobs(numJobs int) {
+	for range numJobs {
+		p.queue <- &Job{Id: p.nextJobId}
+		p.nextJobId++
+	}
 }
 
 //nolint:gocognit // false positive

@@ -24,6 +24,12 @@ func NewStressCmd() *cobra.Command {
 	}
 	cmd.PersistentFlags().IntVarP(&config.WorkerThreads,
 		"worker", "w", 1, "Amount of worker threads")
+
+	cmd.PersistentFlags().StringVar(&config.RampUpDurationArg,
+		"rampup-duration", "", "how long should a ramp up phase last (example \"5m\")")
+	cmd.PersistentFlags().IntVar(&config.RampUpIncrease,
+		"rampup-increase", 0, "Increase worker amount during ramp up")
+
 	cmd.PersistentFlags().StringVarP(&config.TestDuration,
 		"duration", "d", testDurationArg, "Duration of stress test")
 	cmd.PersistentFlags().StringVar(&config.Pause,
