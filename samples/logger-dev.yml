@@ -13,5 +13,8 @@ zap:
     timeEncoder:
       layout: "15:04:05.000"
     durationEncoder: "string"
-filters:
-  - "debug+:*"
+loggers:
+  # samples
+  # stress: "debug"
+  # stress.worker: "info"
+  # stress.worker.\d+: "info"
