@@ -43,7 +43,7 @@ type WorkerStats struct {
 
 type (
 	JobHandler    func(j *Job) error
-	FinishHandler func()
+	FinishHandler func(jobsIssued int, stats *[]WorkerStats)
 )
 
 type JobProcessor struct {
@@ -218,10 +218,14 @@ func (p *JobProcessor) Run() {
 	p.pLogger.Info("All jobs finished")
 	if p.finishHandler != nil {
 		p.pLogger.Debug("Calling finishHandler")
-		p.finishHandler()
+		p.finishHandler(p.nextJobId, &p.workerStats)
 		p.pLogger.Debug("Returned from finishHandler")
 	}
 	p.pLogger.Info("End of job processor")
+}
+
+func (p *JobProcessor) ActiveWorker() int {
+	return len(p.workerStats)
 }
 
 func (p *JobProcessor) rampUp(ctx context.Context) {

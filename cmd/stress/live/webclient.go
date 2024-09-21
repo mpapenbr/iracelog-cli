@@ -69,11 +69,14 @@ func webclient(ctx context.Context) {
 	summary := newWebclientStats(config.WorkerThreads, logger.Named("summary"))
 	configOptions = append(configOptions,
 		myStress.WithLogging(logger),
-		myStress.WithFinishHandler(func() {
-			logger.Info("finish handler called")
-			// ctx.Done()
+		myStress.WithFinishHandler(func(jobsDone int, stats *[]myStress.WorkerStats) {
+			logger.Info("finish handler called",
+				log.Int("jobsDone", jobsDone),
+				log.Int("workerUsed", len(*stats)),
+			)
+			summary.output(len(*stats))
 		}),
-		myStress.WithWorkerProgress(30*time.Second),
+		// myStress.WithWorkerProgress(30*time.Second),
 		myStress.WithTargetClientProvider(func() *grpc.ClientConn {
 			if singleConnection {
 				return singleConn
@@ -156,6 +159,7 @@ func webclient(ctx context.Context) {
 	)
 	start := time.Now()
 
+	jobProcessor := myStress.NewJobProcessor(configOptions...)
 	ticker := time.NewTicker(10 * time.Hour)
 	go func() {
 		for {
@@ -166,15 +170,12 @@ func webclient(ctx context.Context) {
 				return
 			case <-ticker.C:
 				logger.Info("About to show progress of workers")
-				summary.output()
+				summary.output(jobProcessor.ActiveWorker())
 			}
 		}
 	}()
-
-	jobProcessor := myStress.NewJobProcessor(configOptions...)
 	jobProcessor.Run()
 	logger.Info("job processor finished", log.Duration("duration", time.Since(start)))
-	summary.output()
 }
 
 type webclientStats struct {
@@ -191,9 +192,22 @@ func newWebclientStats(numWorker int, logger *log.Logger) *webclientStats {
 	}
 }
 
-func (w *webclientStats) output() {
-	for i := range w.stats {
+func (w *webclientStats) output(numWorkers int) {
+	totals := simulate.Stats{}
+	s := w.stats[:numWorkers]
+	for i := range s {
+		totals.Add(&w.stats[i])
 		w.logger.Info("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
+	}
+	w.logger.Info("totals", log.Int("totalWorkers", numWorkers), log.Any("totals", totals))
+	for i := range s {
+		if s[i].Analysis.Count == 0 &&
+			s[i].Driver.Count == 0 &&
+			s[i].Speedmap.Count == 0 &&
+			s[i].State.Count == 0 {
+
+			w.logger.Info("worker without stats", log.Int("workerId", i))
+		}
 	}
 }
 

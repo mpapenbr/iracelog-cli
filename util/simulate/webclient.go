@@ -346,3 +346,10 @@ func (ds *DataStat) Add(other *DataStat) {
 	ds.Count += other.Count
 	ds.Bytes += other.Bytes
 }
+
+func (s *Stats) Add(other *Stats) {
+	s.Analysis.Add(&other.Analysis)
+	s.Driver.Add(&other.Driver)
+	s.Speedmap.Add(&other.Speedmap)
+	s.State.Add(&other.State)
+}
