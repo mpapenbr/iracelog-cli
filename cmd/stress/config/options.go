@@ -16,6 +16,7 @@ var (
 	WorkerProgressArg string
 	RampUpDurationArg string
 	RampUpIncrease    int
+	RampUpInitial     int
 
 	JobLogLevelArg string
 )
@@ -34,6 +35,9 @@ func CollectStandardJobProcessorOptions() []myStress.OptionFunc {
 	}
 	if rampUpDuration, err := time.ParseDuration(RampUpDurationArg); err == nil {
 		ret = append(ret, myStress.WithRampUpDuration(rampUpDuration))
+	}
+	if RampUpInitial > 0 {
+		ret = append(ret, myStress.WithRampUpInitialWorkers(RampUpInitial))
 	}
 	if RampUpIncrease > 0 {
 		ret = append(ret, myStress.WithRampUpIncrease(RampUpIncrease))

@@ -29,6 +29,8 @@ func NewStressCmd() *cobra.Command {
 		"rampup-duration", "", "how long should a ramp up phase last (example \"5m\")")
 	cmd.PersistentFlags().IntVar(&config.RampUpIncrease,
 		"rampup-increase", 0, "Increase worker amount during ramp up")
+	cmd.PersistentFlags().IntVar(&config.RampUpInitial,
+		"rampup-initial", 1, "Initial amount of workers during ramp up")
 
 	cmd.PersistentFlags().StringVarP(&config.TestDuration,
 		"duration", "d", testDurationArg, "Duration of stress test")

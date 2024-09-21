@@ -3,6 +3,7 @@ package simulate
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/livedata/v1/livedatav1grpc"
 	commonv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/common/v1"
 	livedatav1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/livedata/v1"
+	"github.com/dustin/go-humanize"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -347,9 +349,18 @@ func (ds *DataStat) Add(other *DataStat) {
 	ds.Bytes += other.Bytes
 }
 
+func (ds *DataStat) String() string {
+	return fmt.Sprintf("%d/%s", ds.Count, humanize.IBytes(uint64(ds.Bytes)))
+}
+
 func (s *Stats) Add(other *Stats) {
 	s.Analysis.Add(&other.Analysis)
 	s.Driver.Add(&other.Driver)
 	s.Speedmap.Add(&other.Speedmap)
 	s.State.Add(&other.State)
+}
+
+func (s *Stats) String() string {
+	return fmt.Sprintf("Analysis: %s, Driver: %s, Speedmap: %s, State: %s",
+		s.Analysis.String(), s.Driver.String(), s.Speedmap.String(), s.State.String())
 }

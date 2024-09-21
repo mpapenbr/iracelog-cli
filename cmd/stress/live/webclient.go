@@ -8,6 +8,7 @@ import (
 
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/provider/v1/providerv1grpc"
 	providerv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/provider/v1"
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
@@ -197,9 +198,18 @@ func (w *webclientStats) output(numWorkers int) {
 	s := w.stats[:numWorkers]
 	for i := range s {
 		totals.Add(&w.stats[i])
-		w.logger.Info("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
+		w.logger.Info("summary",
+			log.Int("workerId", i),
+			log.String("stats", w.stats[i].String()))
 	}
-	w.logger.Info("totals", log.Int("totalWorkers", numWorkers), log.Any("totals", totals))
+	w.logger.Info("totals",
+		log.Int("totalWorkers", numWorkers),
+		log.String("totalBytes", humanize.IBytes(
+			uint64(totals.Analysis.Bytes+
+				totals.Driver.Bytes+
+				totals.Speedmap.Bytes+
+				totals.State.Bytes))),
+		log.String("totals", totals.String()))
 	for i := range s {
 		if s[i].Analysis.Count == 0 &&
 			s[i].Driver.Count == 0 &&

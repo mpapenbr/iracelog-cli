@@ -51,6 +51,7 @@ type JobProcessor struct {
 	currentWorker        int
 	pause                time.Duration
 	duration             time.Duration // max time the JobProcessor is running
+	rampUpInitial        int
 	rampUpIncrease       int
 	rampUpDuration       time.Duration
 	wgWorker             sync.WaitGroup
@@ -121,6 +122,12 @@ func WithRampUpIncrease(num int) OptionFunc {
 	}
 }
 
+func WithRampUpInitialWorkers(num int) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.rampUpInitial = num
+	}
+}
+
 func WithLogging(logger *log.Logger) OptionFunc {
 	return func(sp *JobProcessor) {
 		sp.pLogger = logger.Named("stress")
@@ -143,6 +150,7 @@ func WithSourceClientProvider(provider func() *grpc.ClientConn) OptionFunc {
 func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 	ret := &JobProcessor{
 		numWorker:     1,
+		rampUpInitial: 1,
 		currentWorker: 0,
 		pause:         time.Second,
 		duration:      time.Minute * 10,
@@ -177,12 +185,12 @@ func (p *JobProcessor) Run() {
 		p.pLogger.Info("Ramping up workers",
 			log.Int("increase", p.rampUpIncrease),
 			log.Duration("duration", p.rampUpDuration))
-		initWorker := 1
-		p.currentWorker = initWorker
-		for i := 0; i < initWorker; i++ {
+
+		p.currentWorker = p.rampUpInitial
+		for i := 0; i < p.rampUpInitial; i++ {
 			p.addWorker(workerCtx, i)
 		}
-		p.addJobs(initWorker)
+		p.addJobs(p.rampUpInitial)
 
 		go p.rampUp(workerCtx)
 	} else {
