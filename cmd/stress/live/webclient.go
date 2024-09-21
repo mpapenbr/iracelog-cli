@@ -193,7 +193,7 @@ func newWebclientStats(numWorker int, logger *log.Logger) *webclientStats {
 
 func (w *webclientStats) output() {
 	for i := range w.stats {
-		w.logger.Warn("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
+		w.logger.Info("summary", log.Int("workerId", i), log.Any("stats", w.stats[i]))
 	}
 }
 

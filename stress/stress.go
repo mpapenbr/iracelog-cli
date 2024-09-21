@@ -232,13 +232,15 @@ func (p *JobProcessor) rampUp(ctx context.Context) {
 			p.pLogger.Info("Ramp up terminated by context")
 			return
 		default:
-			if p.currentWorker >= p.numWorker {
-				p.pLogger.Info("Ramp up done")
-				return
+			for i := 0; i < p.rampUpIncrease; i++ {
+				if p.currentWorker >= p.numWorker {
+					p.pLogger.Info("Ramp up done")
+					return
+				}
+				p.addWorker(ctx, p.currentWorker)
+				p.currentWorker++
+				p.addJobs(1)
 			}
-			p.addWorker(ctx, p.currentWorker)
-			p.currentWorker++
-			p.addJobs(1)
 			p.pLogger.Debug("waiting for next rampup iteration",
 				log.Duration("duration", p.rampUpDuration))
 		}
