@@ -7,7 +7,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.67.0
+	google.golang.org/grpc v1.67.1
 )
 
 require (
@@ -17,13 +17,13 @@ require (
 
 require (
 	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20240818164234-8da4d13e1b88.1
+	github.com/dustin/go-humanize v1.0.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
 )
 
 require (
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
