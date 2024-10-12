@@ -18,7 +18,7 @@ require (
 require (
 	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20240818164234-8da4d13e1b88.1
 	github.com/dustin/go-humanize v1.0.1
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
 )
