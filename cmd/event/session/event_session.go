@@ -38,7 +38,7 @@ func NewEventSessionCmd() *cobra.Command {
 		"timestamp time where data should begin")
 	cmd.Flags().IntVar(&num, "num", 20,
 		"number of entries to show")
-	cmd.MarkFlagsMutuallyExclusive("session-time", "timestamp")
+	cmd.MarkFlagsMutuallyExclusive("session-time", "record-stamp")
 
 	return cmd
 }
