@@ -1,4 +1,4 @@
-package output
+package event
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 
 	carv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/car/v1"
 	eventv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/event/v1"
+
+	"github.com/mpapenbr/iracelog-cli/util/output"
 )
 
 type (
@@ -13,7 +15,7 @@ type (
 	EventOutputConfig struct {
 		eventData    *eventv1.GetEventResponse
 		carNumFilter []string
-		format       Format
+		format       output.Format
 		components   []Component
 		outputFunc   func(s string)
 	}
@@ -36,16 +38,17 @@ func NewEventOutput(eventData *eventv1.GetEventResponse, opts ...Option) EventOu
 	ret := &EventOutputConfig{
 		eventData:  eventData,
 		outputFunc: func(s string) { fmt.Println(s) },
-		format:     FormatText,
+		format:     output.FormatText,
 		components: []Component{},
 	}
 	for _, opt := range opts {
 		opt(ret)
 	}
+	//nolint:exhaustive // by design
 	switch ret.format {
-	case FormatText:
+	case output.FormatText:
 		return &eventOutput{config: ret, outputter: &eventText{}}
-	case FormatJSON:
+	case output.FormatJSON:
 		return &eventOutput{config: ret, outputter: &eventJson{}}
 	}
 	return &eventOutput{config: ret, outputter: &eventEmpty{}}
@@ -84,7 +87,7 @@ func WithComponents(comps []Component) Option {
 	}
 }
 
-func WithFormat(f Format) Option {
+func WithFormat(f output.Format) Option {
 	return func(e *EventOutputConfig) {
 		e.format = f
 	}

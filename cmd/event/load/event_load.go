@@ -11,6 +11,7 @@ import (
 	"github.com/mpapenbr/iracelog-cli/log"
 	"github.com/mpapenbr/iracelog-cli/util"
 	"github.com/mpapenbr/iracelog-cli/util/output"
+	"github.com/mpapenbr/iracelog-cli/util/output/event"
 )
 
 var (
@@ -61,24 +62,24 @@ func loadEvent(arg string) {
 		return
 	}
 	log.Info("Event loaded.")
-	opts := []output.Option{}
+	opts := []event.Option{}
 	if len(carNumFilter) > 0 {
-		opts = append(opts, output.WithCarNumFilter(carNumFilter))
+		opts = append(opts, event.WithCarNumFilter(carNumFilter))
 	}
 	if format != "" {
 		if f, err := output.ParseFormat(format); err == nil {
-			opts = append(opts, output.WithFormat(f))
+			opts = append(opts, event.WithFormat(f))
 		}
 	}
 	if len(components) > 0 {
-		comps := []output.Component{}
+		comps := []event.Component{}
 		for _, c := range components {
-			v, _ := output.ParseComponent(c)
+			v, _ := event.ParseComponent(c)
 			comps = append(comps, v)
 		}
-		opts = append(opts, output.WithComponents(comps))
+		opts = append(opts, event.WithComponents(comps))
 	}
 
-	out := output.NewEventOutput(resp, opts...)
+	out := event.NewEventOutput(resp, opts...)
 	out.Output()
 }

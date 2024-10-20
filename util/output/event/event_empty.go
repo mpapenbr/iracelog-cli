@@ -1,4 +1,4 @@
-package output
+package event
 
 type (
 	eventEmpty struct{}
