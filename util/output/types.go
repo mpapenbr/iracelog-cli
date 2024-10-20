@@ -7,20 +7,13 @@ import (
 )
 
 type (
-	Component int8
-	Format    int8
-)
-
-const (
-	ComponentUnknown Component = iota
-	ComponentEventInfo
-	ComponentEventCars
-	ComponentEventCarLaps
+	Format int8
 )
 
 const (
 	FormatText Format = iota
 	FormatJSON
+	FormatCSV
 )
 
 const (
@@ -41,6 +34,8 @@ func (f Format) String() string {
 		return "text"
 	case FormatJSON:
 		return "json"
+	case FormatCSV:
+		return "csv"
 	default:
 		return Unknown
 	}
@@ -64,59 +59,10 @@ func (f *Format) unmarshalText(text []byte) bool {
 	switch string(text) {
 	case "json", "JSON":
 		*f = FormatJSON
+	case "csv", "CSV":
+		*f = FormatCSV
 	case "text", "TEXT", "": // make the zero value useful
 		*f = FormatText
-	default:
-		return false
-	}
-	return true
-}
-
-// Component starts here
-
-func ParseComponent(text string) (Component, error) {
-	var c Component
-	err := c.UnmarshalText([]byte(text))
-	return c, err
-}
-
-func (c Component) String() string {
-	switch c {
-	case ComponentEventInfo:
-		return "info"
-	case ComponentEventCars:
-		return "cars"
-	case ComponentEventCarLaps:
-		return "carlaps"
-	case ComponentUnknown:
-		return Unknown
-	default:
-		return Unknown
-	}
-}
-
-func (c Component) MarshalText() ([]byte, error) {
-	return []byte(c.String()), nil
-}
-
-func (c *Component) UnmarshalText(text []byte) error {
-	if c == nil {
-		return ErrUnmarshalNil
-	}
-	if !c.unmarshalText(text) && !c.unmarshalText(bytes.ToLower(text)) {
-		return fmt.Errorf("unrecognized format: %q", text)
-	}
-	return nil
-}
-
-func (c *Component) unmarshalText(text []byte) bool {
-	switch string(text) {
-	case "info", "INFO", "": // make the zero value useful
-		*c = ComponentEventInfo
-	case "cars", "CARS":
-		*c = ComponentEventCars
-	case "carlaps", "CARLAPS":
-		*c = ComponentEventCarLaps
 	default:
 		return false
 	}

@@ -1,4 +1,4 @@
-package output
+package event
 
 import (
 	"google.golang.org/protobuf/encoding/protojson"

@@ -26,7 +26,7 @@ func initDriverDataFetcher(
 			if resp, err := service.GetDriverData(context.Background(),
 				&racestatev1.GetDriverDataRequest{
 					Event: buildEventSelector(eventId),
-					Start: timestamppb.New(startTs),
+					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
 				logger.Debug("loaded driver data",
@@ -41,7 +41,6 @@ func initDriverDataFetcher(
 			}
 		},
 	}
-
 	return df
 }
 
@@ -59,7 +58,7 @@ func initStateDataFetcher(
 			if resp, err := service.GetStates(context.Background(),
 				&racestatev1.GetStatesRequest{
 					Event: buildEventSelector(eventId),
-					Start: timestamppb.New(startTs),
+					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
 				logger.Debug("loaded state data",
@@ -92,7 +91,7 @@ func initSpeedmapDataFetcher(
 			if resp, err := service.GetSpeedmaps(context.Background(),
 				&racestatev1.GetSpeedmapsRequest{
 					Event: buildEventSelector(eventId),
-					Start: timestamppb.New(startTs),
+					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
 				logger.Debug("loaded speedmap data",
@@ -113,6 +112,12 @@ func initSpeedmapDataFetcher(
 
 func buildEventSelector(eventId uint32) *commonv1.EventSelector {
 	return &commonv1.EventSelector{Arg: &commonv1.EventSelector_Id{Id: int32(eventId)}}
+}
+
+func buildStartSelector(t time.Time) *commonv1.StartSelector {
+	return &commonv1.StartSelector{
+		Arg: &commonv1.StartSelector_RecordStamp{RecordStamp: timestamppb.New(t)},
+	}
 }
 
 type myFetcher[E any] interface {
