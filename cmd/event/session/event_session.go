@@ -44,6 +44,7 @@ func NewEventSessionCmd() *cobra.Command {
 	cmd.Flags().IntVar(&num, "num", 20,
 		"number of entries to show")
 	cmd.MarkFlagsMutuallyExclusive("session-time", "record-stamp")
+	cmd.MarkFlagsOneRequired("session-time", "record-stamp")
 	cmd.Flags().StringSliceVar(&attrs, "attrs", []string{},
 		"session attributes to display")
 	cmd.Flags().StringVar(&format, "format", "text",
