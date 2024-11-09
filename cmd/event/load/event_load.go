@@ -34,8 +34,8 @@ func NewEventLoadCmd() *cobra.Command {
 	}
 	cmd.Flags().StringSliceVar(&carNumFilter, "filter-carnum", []string{},
 		"filter cars by car number")
-	cmd.Flags().StringSliceVar(&components, "components", []string{},
-		"components to display")
+	cmd.Flags().StringSliceVar(&components, "components", []string{"info", "cars"},
+		"components to display (info, cars, carlaps)")
 	cmd.Flags().StringVar(&format, "format", "text",
 		"output format (text, json,csv)")
 
