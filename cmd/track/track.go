@@ -3,6 +3,7 @@ package track
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/mpapenbr/iracelog-cli/cmd/track/list"
 	"github.com/mpapenbr/iracelog-cli/cmd/track/pit"
 )
 
@@ -14,6 +15,7 @@ func NewTrackCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.AddCommand(list.NewTrackListCmd())
 	cmd.AddCommand(pit.NewPitEditCmd())
 
 	return cmd
