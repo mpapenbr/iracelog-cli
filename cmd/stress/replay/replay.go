@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	jobDurationArg   string
+	jobDuration      time.Duration
 	jobDurationFixed bool
 	cfg              *utilReplay.Config
 )
@@ -52,17 +52,17 @@ func NewStressReplayCmd() *cobra.Command {
 
 	cmd.PersistentFlags().StringVarP(&cfg.Token,
 		"token", "t", "", "authentication token")
-	cmd.Flags().StringVar(&jobDurationArg,
-		"job-duration", "", "how long should a job run (example: \"10s\")")
+	cmd.Flags().DurationVar(&jobDuration,
+		"job-duration", 0, "how long should a job run (example: \"10s\")")
 	cmd.Flags().BoolVar(&jobDurationFixed,
 		"job-duration-fixed",
 		false,
 		"if set, job duration is fixed, otherwise random up to job-duration")
 	cmd.PersistentFlags().BoolVar(&cfg.DoNotPersist,
 		"do-not-persist", false, "do not persist data")
-	cmd.PersistentFlags().StringVar(&cfg.FastForward,
+	cmd.PersistentFlags().DurationVar(&cfg.FastForward,
 		"fast-forward",
-		"",
+		time.Duration(0),
 		"replay this duration with max speed")
 	return cmd
 }
@@ -129,29 +129,22 @@ func replay(ctx context.Context) {
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithCancel(j.Ctx)
 
-			if jobDurationArg != "" {
-				if d, err := time.ParseDuration(jobDurationArg); err == nil {
-					if !jobDurationFixed {
-						//nolint:gosec // ok here
-						d = time.Duration((1 + rand.Intn(int(d.Seconds()))) * int(time.Second))
-					}
-					ctx, cancel = context.WithTimeout(j.Ctx, d)
-					deadLine, _ := ctx.Deadline()
-					j.Logger.Info("job param",
-						log.Duration("duration", d),
-						log.Time("deadline", deadLine))
+			if jobDuration > 0 {
+				d := jobDuration
+				if !jobDurationFixed {
+					//nolint:gosec // ok here
+					d = time.Duration((1 + rand.Intn(int(d.Seconds()))) * int(time.Second))
 				}
+				ctx, cancel = context.WithTimeout(j.Ctx, d)
+				deadLine, _ := ctx.Deadline()
+				j.Logger.Info("job param",
+					log.Duration("duration", d),
+					log.Time("deadline", deadLine))
 			}
 			defer cancel()
 
-			if cfg.FastForward != "" {
-				if ffDur, err := time.ParseDuration(cfg.FastForward); err == nil {
-					opts = append(opts, utilReplay.WithFastForward(ffDur))
-				} else {
-					j.Logger.Warn("Parse error for fast-forward. Ignoring",
-						log.String("duration", cfg.FastForward))
-				}
-			}
+			opts = append(opts, utilReplay.WithFastForward(cfg.FastForward))
+
 			if cfg.Speed > 0 {
 				opts = append(opts, utilReplay.WithSpeed(cfg.Speed))
 			}
