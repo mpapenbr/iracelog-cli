@@ -72,6 +72,12 @@ func WithSessionAttrs(attrs []SessionAttr) Option {
 	}
 }
 
+func WithAllSessionAttrs() Option {
+	return func(cfg *OutputConfig) {
+		cfg.attrs = SupportedSessionAttrs()
+	}
+}
+
 func (s *sessionOutput) Header() {
 	s.outputter.header()
 }
