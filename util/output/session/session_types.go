@@ -32,6 +32,21 @@ func ParseSessionAttr(text string) (SessionAttr, error) {
 	return f, err
 }
 
+func SupportedSessionAttrs() []SessionAttr {
+	return []SessionAttr{
+		SessionTime,
+		SessionNum,
+		SessionTimeRemain,
+		SessionLapsRemain,
+		SessionTimeOfDay,
+		SessionTrackTemp,
+		SessionTrackWetness,
+		SessionPrecipitation,
+		SessionAirTemp,
+		SessionFlagState,
+	}
+}
+
 //nolint:exhaustive,cyclop // by design
 func (f SessionAttr) String() string {
 	switch f {

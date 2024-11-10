@@ -101,6 +101,8 @@ func showSessionData(ctx context.Context, arg string) {
 			sessionAttrs = append(sessionAttrs, v)
 		}
 		opts = append(opts, session.WithSessionAttrs(sessionAttrs))
+	} else {
+		opts = append(opts, session.WithAllSessionAttrs())
 	}
 	out := session.NewSessionOutput(opts...)
 	out.Header()
