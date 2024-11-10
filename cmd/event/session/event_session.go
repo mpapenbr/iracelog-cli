@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"time"
 
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/racestate/v1/racestatev1grpc"
 	commonv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/common/v1"
@@ -16,7 +17,7 @@ import (
 )
 
 var (
-	sessionTime string
+	sessionTime time.Duration
 	recordStamp string
 	num         int
 
@@ -37,7 +38,7 @@ func NewEventSessionCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&sessionTime, "session-time", "",
+	cmd.Flags().DurationVar(&sessionTime, "session-time", 0,
 		"session time as duration where data should begin (for example: 10m)")
 	cmd.Flags().StringVar(&recordStamp, "record-stamp", "",
 		"timestamp time where data should begin")
@@ -66,7 +67,7 @@ func showSessionData(ctx context.Context, arg string) {
 	if startSel, err = util.ResolveStartSelector(sessionTime, recordStamp); err != nil {
 		logger.Error("could not resolve start selector",
 			log.ErrorField(err),
-			log.String("session-time", sessionTime),
+			log.Duration("session-time", sessionTime),
 			log.String("record-stamp", recordStamp))
 		return
 	}

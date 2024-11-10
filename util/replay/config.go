@@ -1,5 +1,7 @@
 package replay
 
+import "time"
+
 type Config struct {
 	Speed          int
 	SourceAddr     string // grpc server address providing the data
@@ -7,7 +9,7 @@ type Config struct {
 	Token          string
 	EventKey       string
 	DoNotPersist   bool
-	FastForward    string
+	FastForward    time.Duration
 }
 
 func DefaultConfig() *Config {
@@ -18,6 +20,6 @@ func DefaultConfig() *Config {
 		Token:          "",
 		EventKey:       "",
 		DoNotPersist:   false,
-		FastForward:    "",
+		FastForward:    time.Duration(0),
 	}
 }

@@ -8,19 +8,15 @@ import (
 )
 
 //nolint:whitespace // can't make all linters happy
-func ResolveStartSelector(sessionTime, recordStamp string) (
+func ResolveStartSelector(sessionTime time.Duration, recordStamp string) (
 	*commonv1.StartSelector, error,
 ) {
-	if sessionTime != "" {
-		if val, err := time.ParseDuration(sessionTime); err != nil {
-			return nil, err
-		} else {
-			return &commonv1.StartSelector{
-				Arg: &commonv1.StartSelector_SessionTime{
-					SessionTime: float32(val.Seconds()),
-				},
-			}, nil
-		}
+	if sessionTime > 0 {
+		return &commonv1.StartSelector{
+			Arg: &commonv1.StartSelector_SessionTime{
+				SessionTime: float32(sessionTime.Seconds()),
+			},
+		}, nil
 	}
 	if recordStamp != "" {
 		if val, err := time.Parse(time.RFC3339, recordStamp); err != nil {

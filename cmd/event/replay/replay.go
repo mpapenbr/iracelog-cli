@@ -48,9 +48,9 @@ func NewEventReplayCmd() *cobra.Command {
 		"key", "", "event key to use for replay")
 	cmd.PersistentFlags().BoolVar(&cfg.DoNotPersist,
 		"do-not-persist", false, "do not persist data")
-	cmd.PersistentFlags().StringVar(&cfg.FastForward,
+	cmd.PersistentFlags().DurationVar(&cfg.FastForward,
 		"fast-forward",
-		"",
+		time.Duration(0),
 		"replay this duration with max speed")
 
 	return cmd
@@ -117,13 +117,8 @@ func replayEvent(arg string) {
 	if cfg.Speed > 0 {
 		opts = append(opts, replay.WithSpeed(cfg.Speed))
 	}
-	if cfg.FastForward != "" {
-		if ffDur, err := time.ParseDuration(cfg.FastForward); err == nil {
-			opts = append(opts, replay.WithFastForward(ffDur))
-		} else {
-			log.Warn("Parse error for fast-forward. Ignoring",
-				log.String("duration", cfg.FastForward))
-		}
+	if cfg.FastForward != time.Duration(0) {
+		opts = append(opts, replay.WithFastForward(cfg.FastForward))
 	}
 	if cfg.Token != "" {
 		opts = append(opts, replay.WithTokenProvider(func() string {
