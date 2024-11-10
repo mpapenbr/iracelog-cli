@@ -34,7 +34,7 @@ func NewTrackListCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringSliceVar(&attrs, "attrs", []string{},
-		"session attributes to display")
+		"track attributes to display")
 	cmd.Flags().StringVar(&format, "format", "text",
 		"output format (text, json,csv)")
 

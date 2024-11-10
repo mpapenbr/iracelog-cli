@@ -5,6 +5,7 @@ import (
 
 	"github.com/mpapenbr/iracelog-cli/cmd/track/list"
 	"github.com/mpapenbr/iracelog-cli/cmd/track/pit"
+	"github.com/mpapenbr/iracelog-cli/cmd/track/transfer"
 )
 
 func NewTrackCmd() *cobra.Command {
@@ -17,6 +18,7 @@ func NewTrackCmd() *cobra.Command {
 	}
 	cmd.AddCommand(list.NewTrackListCmd())
 	cmd.AddCommand(pit.NewPitEditCmd())
+	cmd.AddCommand(transfer.NewTransferDataCmd())
 
 	return cmd
 }
