@@ -21,7 +21,7 @@ var (
 
 func NewPitEditCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pit",
+		Use:   "edit",
 		Short: "edit pit data.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil

@@ -17,7 +17,7 @@ func NewTrackCmd() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(list.NewTrackListCmd())
-	cmd.AddCommand(pit.NewPitEditCmd())
+	cmd.AddCommand(pit.NewPitCmd())
 	cmd.AddCommand(transfer.NewTransferDataCmd())
 
 	return cmd
