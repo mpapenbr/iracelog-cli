@@ -56,7 +56,15 @@ func liveCarInfo(eventArg string) {
 			log.Error("error fetching live state", log.ErrorField(err))
 			return
 		} else {
-			log.Debug("got count: ", log.Int("count", len(resp.CarOccupancies)))
+			log.Debug("got count: ",
+				log.Int("count", len(resp.CarOccupancies)),
+			)
+			for _, co := range resp.CarOccupancies {
+				log.Debug("car occupancy",
+					log.String("carNum", co.CarNum),
+					log.Any("drivers", co.Drivers),
+				)
+			}
 		}
 	}
 }

@@ -1,10 +1,11 @@
-package transfer
+package pit
 
 import (
 	"context"
 	"errors"
 	"io"
 	"slices"
+	"strconv"
 
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/track/v1/trackv1grpc"
 	trackv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/track/v1"
@@ -21,19 +22,19 @@ var (
 	sourceAddr     string
 	sourceInsecure bool
 	dryRun         bool
-	limitTracks    []int
 )
 
-func NewTransferDataCmd() *cobra.Command {
+func NewPitTransferCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer",
+		Use:   "transfer ...",
 		Short: "transfers track data from another iRacelog instance",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
+		Args: cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			runTransfer()
+			runTransfer(args)
 		},
 	}
 	cmd.Flags().StringVarP(&config.DefaultCliArgs().Token,
@@ -48,10 +49,6 @@ func NewTransferDataCmd() *cobra.Command {
 		"source-insecure",
 		false,
 		"connect gRPC address without TLS (development only)")
-	cmd.Flags().IntSliceVar(&limitTracks,
-		"limit",
-		[]int{},
-		"limit to these track ids to transfer")
 	cmd.Flags().BoolVar(&dryRun,
 		"dry-run",
 		false,
@@ -60,7 +57,7 @@ func NewTransferDataCmd() *cobra.Command {
 	return cmd
 }
 
-func runTransfer() {
+func runTransfer(args []string) {
 	log.Info("connect source server", log.String("addr", sourceAddr))
 	source, err := util.NewClient(
 		sourceAddr,
@@ -81,10 +78,21 @@ func runTransfer() {
 	}
 	defer dest.Close()
 
+	tracks := []int{}
+	for _, arg := range args {
+		if trackId, err := strconv.Atoi(arg); err != nil {
+			log.Warn("could not convert track id",
+				log.ErrorField(err), log.String("track", arg))
+			continue
+		} else {
+			tracks = append(tracks, trackId)
+		}
+	}
 	transferData := transferData{
 		source: source,
 		dest:   dest,
 		dryRun: dryRun,
+		tracks: tracks,
 	}
 	transferData.transfer()
 }
@@ -93,11 +101,12 @@ type transferData struct {
 	source *grpc.ClientConn
 	dest   *grpc.ClientConn
 	dryRun bool
+	tracks []int
 }
 
 //nolint:funlen // by design
 func (t *transferData) transfer() {
-	log.Info("transfer track data")
+	log.Info("transfer pit data")
 	sourceTracks := t.readTracks(t.source)
 	destTracks := t.readTracks(t.dest)
 	log.Info("got tracks",
@@ -108,13 +117,11 @@ func (t *transferData) transfer() {
 	trackService := trackv1grpc.NewTrackServiceClient(t.dest)
 	for _, st := range sourceTracks {
 		//nolint:nestif	 // false positive
-		if _, ok := destLookup[st.Id]; !ok {
-			if len(limitTracks) > 0 {
-				if !slices.Contains(limitTracks, int(st.Id)) {
-					continue
-				}
+		if _, ok := destLookup[st.Id]; ok {
+			if !slices.Contains(t.tracks, int(st.Id)) {
+				continue
 			}
-			log.Debug("transfer track",
+			log.Debug("pit track",
 				log.Uint32("id", st.Id),
 				log.String("name", st.Name),
 				log.String("config", st.Config),
@@ -131,14 +138,18 @@ func (t *transferData) transfer() {
 			if !t.dryRun {
 				md := metadata.Pairs("api-token", config.DefaultCliArgs().Token)
 				ctx := metadata.NewOutgoingContext(context.Background(), md)
-				req := trackv1.EnsureTrackRequest{
-					Track: st,
+				updateReq := trackv1.UpdatePitInfoRequest{
+					Id: st.Id,
+					PitInfo: &trackv1.PitInfo{
+						Entry:      st.PitInfo.Entry,
+						Exit:       st.PitInfo.Exit,
+						LaneLength: st.PitInfo.LaneLength,
+					},
 				}
-				log.Info("transferring track",
-					log.Uint32("id", st.Id),
-					log.String("name", st.Name))
-				if _, err := trackService.EnsureTrack(ctx, &req); err != nil {
-					log.Error("could not transfer track", log.ErrorField(err))
+				if _, err := trackService.UpdatePitInfo(ctx, &updateReq); err != nil {
+					log.Error("could not update track", log.ErrorField(err),
+						log.Uint32("trackId", st.Id))
+					return
 				}
 			}
 		}
