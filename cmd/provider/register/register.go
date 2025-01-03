@@ -15,6 +15,8 @@ import (
 	"github.com/mpapenbr/iracelog-cli/util"
 )
 
+var eventKey string
+
 func NewProviderRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register",
@@ -28,6 +30,8 @@ func NewProviderRegisterCmd() *cobra.Command {
 	}
 	cmd.PersistentFlags().StringVarP(&config.DefaultCliArgs().Token,
 		"token", "t", "", "authentication token")
+	cmd.PersistentFlags().StringVar(&eventKey,
+		"key", "", "event key to use for registration")
 	cmd.Flags().BoolVar(&config.DefaultCliArgs().DoNotPersist,
 		"do-not-persist",
 		false,
@@ -47,9 +51,14 @@ func registerEvent(cfg *config.CliArgs) error {
 	if cfg.DoNotPersist {
 		recordingMode = providerv1.RecordingMode_RECORDING_MODE_DO_NOT_PERSIST
 	}
-	req := providerv1.RegisterEventRequest{
-		Event: &eventv1.Event{Key: uuid.New().String(), TrackId: 18},
 
+	key := uuid.New().String()
+	if eventKey != "" {
+		key = eventKey
+	}
+	req := providerv1.RegisterEventRequest{
+		Key:           key,
+		Event:         &eventv1.Event{Key: key, TrackId: 18},
 		RecordingMode: recordingMode,
 	}
 	c := providerv1grpc.NewProviderServiceClient(conn)
@@ -57,7 +66,7 @@ func registerEvent(cfg *config.CliArgs) error {
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	r, err := c.RegisterEvent(ctx, &req)
 	if err != nil {
-		log.Error("could not get events", log.ErrorField(err))
+		log.Error("could not register event", log.ErrorField(err))
 		return err
 	}
 	log.Debug("got event: ", log.Any("event", r))

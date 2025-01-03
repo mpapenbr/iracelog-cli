@@ -108,6 +108,7 @@ func replayEvent(arg string) {
 			}
 			e.Event.Key = cfg.EventKey
 			return &providerv1.RegisterEventRequest{
+				Key:           e.Event.Key,
 				Event:         e.Event,
 				Track:         e.Track,
 				RecordingMode: recordingMode(),

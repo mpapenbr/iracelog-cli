@@ -175,6 +175,7 @@ func replay(ctx context.Context) {
 
 					e.Key = uuid.New().String()
 					return &providerv1.RegisterEventRequest{
+						Key:           e.Key,
 						Event:         e,
 						Track:         eventResp.Track,
 						RecordingMode: recordingMode(),
