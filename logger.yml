@@ -19,3 +19,4 @@ loggers:
   stress.worker: "info"
   # stress.worker.\d+: "info"
   stress.worker.0: "debug"
+  replay.state: "info"
