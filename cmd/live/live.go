@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mpapenbr/iracelog-cli/cmd/live/analysis"
+	"github.com/mpapenbr/iracelog-cli/cmd/live/driver"
 	"github.com/mpapenbr/iracelog-cli/cmd/live/snapshot"
 	"github.com/mpapenbr/iracelog-cli/cmd/live/speedmap"
 	"github.com/mpapenbr/iracelog-cli/cmd/live/state"
@@ -22,6 +23,8 @@ func NewLiveCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&config.DefaultCliArgs().Event,
 		"event", "", "event name")
 	cmd.AddCommand(state.NewLiveStateCmd())
+	cmd.AddCommand(driver.NewLiveDriverCmd())
+	cmd.AddCommand(driver.NewSendEmptyDriverData())
 	cmd.AddCommand(analysis.NewLiveAnalysisCmd())
 	cmd.AddCommand(analysis.NewLiveAnalysisSelectorCmd())
 	cmd.AddCommand(analysis.NewLiveCarOccupancyCmd())
