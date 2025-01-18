@@ -20,6 +20,7 @@ const (
 	SessionPrecipitation
 	SessionAirTemp
 	SessionFlagState
+	SessionTimestamp
 )
 
 type (
@@ -44,6 +45,7 @@ func SupportedSessionAttrs() []SessionAttr {
 		SessionPrecipitation,
 		SessionAirTemp,
 		SessionFlagState,
+		SessionTimestamp,
 	}
 }
 
@@ -70,6 +72,8 @@ func (f SessionAttr) String() string {
 		return "airTemp"
 	case SessionFlagState:
 		return "flagState"
+	case SessionTimestamp:
+		return "timestamp"
 
 	default:
 		return output.Unknown
@@ -113,6 +117,8 @@ func (f *SessionAttr) unmarshalText(text []byte) bool {
 		*f = SessionAirTemp
 	case "flagstate":
 		*f = SessionFlagState
+	case "timestamp":
+		*f = SessionTimestamp
 	default:
 		return false
 	}

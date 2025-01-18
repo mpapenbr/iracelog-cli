@@ -31,7 +31,7 @@ func (s *sessionCsv) header() {
 	s.writer.Write(data)
 }
 
-//nolint:cyclop // by design
+//nolint:cyclop,funlen // by design
 func (s *sessionCsv) line(data *racestatev1.PublishStateRequest) {
 	out := []string{}
 	for _, attr := range s.config.attrs {
@@ -57,6 +57,8 @@ func (s *sessionCsv) line(data *racestatev1.PublishStateRequest) {
 			valueString = fmt.Sprintf("%.4f", data.Session.GetPrecipitation())
 		case SessionFlagState:
 			valueString = data.Session.GetFlagState()
+		case SessionTimestamp:
+			valueString = data.Timestamp.AsTime().String()
 		case SessionUndefined:
 			valueString = "undefined"
 		default:
