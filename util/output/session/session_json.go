@@ -41,6 +41,8 @@ func (s *sessionJson) line(data *racestatev1.PublishStateRequest) {
 			out[attr.String()] = data.Session.GetPrecipitation()
 		case SessionFlagState:
 			out[attr.String()] = data.Session.GetFlagState()
+		case SessionTimestamp:
+			out[attr.String()] = data.Timestamp.AsTime().String()
 		case SessionUndefined:
 			// empty by design
 		}
