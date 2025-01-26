@@ -9,6 +9,7 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/event/check/options"
 	"github.com/mpapenbr/iracelog-cli/cmd/event/check/speedmap"
 	"github.com/mpapenbr/iracelog-cli/cmd/event/check/state"
+	"github.com/mpapenbr/iracelog-cli/cmd/event/check/tire"
 )
 
 func NewCheckCmd() *cobra.Command {
@@ -23,6 +24,7 @@ func NewCheckCmd() *cobra.Command {
 
 	cmd.AddCommand(speedmap.NewCheckSpeedmapCmd())
 	cmd.AddCommand(driver.NewCheckDriverCmd())
+	cmd.AddCommand(tire.NewCheckTireCmd())
 
 	cmd.PersistentFlags().DurationVar(&options.SessionTime, "session-time", 0,
 		"session time as duration where data should begin (for example: 10m)")

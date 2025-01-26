@@ -2,12 +2,14 @@ package speedmap
 
 import (
 	"context"
-	"math"
+	"errors"
+	"io"
 
 	"buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/racestate/v1/racestatev1grpc"
 	commonv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/common/v1"
 	racestatev1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/racestate/v1"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/mpapenbr/iracelog-cli/cmd/event/check/options"
@@ -52,60 +54,44 @@ func checkSpeedmaps(ctx context.Context, arg string) {
 	}
 	logger.Info("start selector resolved", log.Any("start-selector", startSel))
 
-	remain := math.MaxInt32
-	if options.NumEntries > 0 {
-		remain = int(options.NumEntries)
-	}
-	toFetchEntries := func() int32 {
-		if options.NumEntries > 0 {
-			return min(min(500, options.NumEntries), int32(remain))
-		}
-		return int32(500)
-	}
-	req := racestatev1.GetSpeedmapsRequest{
+	req := racestatev1.GetSpeedmapStreamRequest{
 		Event: util.ResolveEvent(arg),
 		Start: startSel,
-		Num:   toFetchEntries(),
+		Num:   options.NumEntries,
 	}
 
 	c := racestatev1grpc.NewRaceStateServiceClient(conn)
 	var prevTs *timestamppb.Timestamp = nil
-	for {
-		var resp *racestatev1.GetSpeedmapsResponse
 
-		if resp, err = c.GetSpeedmaps(ctx, &req); err != nil {
-			logger.Error("could not load speedmaps for event",
-				log.ErrorField(err),
-				log.String("event", arg))
-			return
-		}
-		if len(resp.Speedmaps) == 0 {
+	var resp grpc.ServerStreamingClient[racestatev1.GetSpeedmapStreamResponse]
+
+	if resp, err = c.GetSpeedmapStream(ctx, &req); err != nil {
+		logger.Error("could not load speedmaps for event",
+			log.ErrorField(err),
+			log.String("event", arg))
+		return
+	}
+
+	for {
+		s, err := resp.Recv()
+		if errors.Is(err, io.EOF) {
+			log.Debug("EOF")
 			break
 		}
-		for _, s := range resp.Speedmaps {
-			if prevTs != nil {
-				delta := s.Timestamp.AsTime().Sub(prevTs.AsTime())
-				if delta > options.GapThreshold {
-					logger.Info("Gap detected.",
-						log.Time("prev", prevTs.AsTime()),
-						log.Time("this", s.Timestamp.AsTime()),
+		if err != nil {
+			logger.Error("error fetching speedmaps", log.ErrorField(err))
+			return
+		}
+		if prevTs != nil {
+			delta := s.Speedmap.Timestamp.AsTime().Sub(prevTs.AsTime())
+			if delta > options.GapThreshold {
+				logger.Info("Gap detected.",
+					log.Time("prev", prevTs.AsTime()),
+					log.Time("this", s.Speedmap.Timestamp.AsTime()),
 
-						log.Duration("delta", delta))
-				}
+					log.Duration("delta", delta))
 			}
-			prevTs = s.Timestamp
 		}
-		if options.NumEntries > 0 {
-			remain -= len(resp.Speedmaps)
-		}
-		logger.Debug("Speedmaps loaded.",
-			log.Int("num", len(resp.Speedmaps)),
-			log.Int("remain", remain))
-		req.Start = &commonv1.StartSelector{
-			Arg: &commonv1.StartSelector_RecordStamp{
-				RecordStamp: resp.LastTs,
-			},
-		}
-		req.SetNum(toFetchEntries())
+		prevTs = s.Speedmap.Timestamp
 	}
 }
