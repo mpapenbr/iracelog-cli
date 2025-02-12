@@ -28,6 +28,7 @@ const (
 	CarAttrLastLap
 	CarAttrBestLap
 	CarSessionTime
+	CarSessionNum
 )
 
 func ParseCarAttr(text string) (CarAttr, error) {
@@ -55,6 +56,7 @@ func SupportedCarAttrs() []CarAttr {
 		CarAttrLastLap,
 		CarAttrBestLap,
 		CarSessionTime,
+		CarSessionNum,
 	}
 }
 
@@ -95,6 +97,8 @@ func (f CarAttr) String() string {
 		return "bestlap"
 	case CarSessionTime:
 		return "sessiontime"
+	case CarSessionNum:
+		return "sessionnum"
 	default:
 		return "unknown"
 	}
@@ -147,6 +151,8 @@ func (f *CarAttr) unmarshalText(text []byte) bool {
 		*f = CarAttrBestLap
 	case "sessiontime":
 		*f = CarSessionTime
+	case "sessionnum":
+		*f = CarSessionNum
 	default:
 		return false
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mpapenbr/iracelog-cli/cmd/event/state/car"
+	"github.com/mpapenbr/iracelog-cli/cmd/event/state/driver"
 	"github.com/mpapenbr/iracelog-cli/cmd/event/state/options"
 )
 
@@ -18,15 +19,20 @@ func NewStateCmd() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(car.NewStateCarCmd())
-	cmd.PersistentFlags().DurationVar(&options.SessionTime, "session-time", 0,
+	cmd.AddCommand(driver.NewStateDriverDataCmd())
+	cmd.PersistentFlags().DurationVar(&options.SessionTime, "session-time", -1,
 		"session time as duration where data should begin (for example: 10m)")
+	cmd.PersistentFlags().Int32Var(&options.SessionNum, "session-num", -1,
+		"session num to be used (-1 means: latest session)")
 	cmd.PersistentFlags().StringVar(&options.RecordStamp, "record-stamp", "",
 		"timestamp time where data should begin")
+	cmd.PersistentFlags().Int32Var(&options.Id, "id", -1,
+		"sequence id to be used for start selector (internal sequence)")
 
 	cmd.PersistentFlags().Int32Var(&options.NumEntries, "num", 0,
-		"how many entries to check (0 means all)")
+		"number of entries to fetch (0 means all)")
 
-	cmd.MarkFlagsMutuallyExclusive("session-time", "record-stamp")
-	cmd.MarkFlagsOneRequired("session-time", "record-stamp")
+	cmd.MarkFlagsMutuallyExclusive("session-time", "record-stamp", "id")
+	cmd.MarkFlagsOneRequired("session-time", "record-stamp", "id")
 	return cmd
 }
