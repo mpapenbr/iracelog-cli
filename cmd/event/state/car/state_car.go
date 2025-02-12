@@ -59,10 +59,10 @@ func showCarData(ctx context.Context, arg string) {
 		logger.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
+
 	var startSel *commonv1.StartSelector
-	if startSel, err = util.ResolveStartSelector(
-		options.SessionTime,
-		options.RecordStamp); err != nil {
+	if startSel, err = util.ResolveStartSelector2(
+		options.BuildStartSelParam()); err != nil {
 		logger.Error("could not resolve start selector",
 			log.ErrorField(err),
 			log.Duration("session-time", options.SessionTime),
@@ -134,7 +134,6 @@ func showCarData(ctx context.Context, arg string) {
 	out.Header()
 	for {
 		var resp *racestatev1.GetStatesResponse
-
 		if resp, err = c.GetStates(ctx, &req); err != nil {
 			logger.Error("could not load states for event",
 				log.ErrorField(err),
@@ -158,9 +157,12 @@ func showCarData(ctx context.Context, arg string) {
 		logger.Debug("States loaded.",
 			log.Int("num", len(resp.States)),
 			log.Int("remain", remain))
+		if remain <= 0 {
+			break
+		}
 		req.Start = &commonv1.StartSelector{
-			Arg: &commonv1.StartSelector_RecordStamp{
-				RecordStamp: resp.LastTs,
+			Arg: &commonv1.StartSelector_Id{
+				Id: resp.GetLastId() + 1,
 			},
 		}
 		req.SetNum(toFetchEntries())

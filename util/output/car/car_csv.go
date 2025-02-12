@@ -80,6 +80,8 @@ func getCarAttrValue(
 		return fmt.Sprintf("%d", car.GetTireCompound().GetRawValue())
 	case CarSessionTime:
 		return fmt.Sprintf("%.0f", session.SessionTime)
+	case CarSessionNum:
+		return fmt.Sprintf("%.d", session.SessionNum)
 		// case CarAttrBestLap:
 		// 	return fmt.Sprintf("%.3f", car.GetBest())
 		// case CarAttrLastLap:
