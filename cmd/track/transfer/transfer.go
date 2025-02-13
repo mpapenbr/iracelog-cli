@@ -95,7 +95,6 @@ type transferData struct {
 	dryRun bool
 }
 
-//nolint:funlen // by design
 func (t *transferData) transfer() {
 	log.Info("transfer track data")
 	sourceTracks := t.readTracks(t.source)
