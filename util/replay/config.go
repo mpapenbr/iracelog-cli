@@ -10,6 +10,7 @@ type Config struct {
 	EventKey       string
 	DoNotPersist   bool
 	FastForward    time.Duration
+	FFPreRace      bool
 }
 
 func DefaultConfig() *Config {
@@ -21,5 +22,6 @@ func DefaultConfig() *Config {
 		EventKey:       "",
 		DoNotPersist:   false,
 		FastForward:    time.Duration(0),
+		FFPreRace:      true,
 	}
 }

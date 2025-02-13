@@ -22,6 +22,7 @@ func initDriverDataFetcher(
 ) myFetcher[racestatev1.PublishDriverDataRequest] {
 	df := &commonFetcher[racestatev1.PublishDriverDataRequest]{
 		lastTS: lastTS,
+
 		loader: func(startTs time.Time) ([]*racestatev1.PublishDriverDataRequest, time.Time, error) {
 			if resp, err := service.GetDriverData(context.Background(),
 				&racestatev1.GetDriverDataRequest{
@@ -34,7 +35,7 @@ func initDriverDataFetcher(
 					log.Time("start", startTs),
 					log.Time("last", resp.LastTs.AsTime()),
 				)
-				return resp.DriverData, resp.LastTs.AsTime(), nil
+				return resp.DriverData, resp.LastTs.AsTime().Add(time.Millisecond), nil
 			} else {
 				logger.Error("failed to load driver data", log.ErrorField(err))
 				return nil, lastTS, err
@@ -66,7 +67,7 @@ func initStateDataFetcher(
 					log.Time("start", startTs),
 					log.Time("last", resp.LastTs.AsTime()),
 				)
-				return resp.States, resp.LastTs.AsTime(), nil
+				return resp.States, resp.LastTs.AsTime().Add(time.Millisecond), nil
 			} else {
 				logger.Error("failed to load state data", log.ErrorField(err))
 				return nil, lastTS, err
@@ -99,7 +100,7 @@ func initSpeedmapDataFetcher(
 					log.Time("start", startTs),
 					log.Time("last", resp.LastTs.AsTime()),
 				)
-				return resp.Speedmaps, resp.LastTs.AsTime(), nil
+				return resp.Speedmaps, resp.LastTs.AsTime().Add(time.Millisecond), nil
 			} else {
 				logger.Error("failed to load speedmap data", log.ErrorField(err))
 				return nil, lastTS, err
@@ -124,13 +125,17 @@ type myFetcher[E any] interface {
 	next() *E
 }
 
-type myLoaderFunc[E any] func(startTs time.Time) ([]*E, time.Time, error)
+type (
+	myLoaderFunc[E any] func(startTs time.Time) ([]*E, time.Time, error)
+	mapToSessionType    func(sessionNum uint32) commonv1.SessionType
+)
 
 //nolint:unused // false positive
 type commonFetcher[E any] struct {
-	loader myLoaderFunc[E]
-	buffer []*E
-	lastTS time.Time
+	loader             myLoaderFunc[E]
+	buffer             []*E
+	lastTS             time.Time
+	resolveSessionType mapToSessionType
 }
 
 //nolint:unused // false positive

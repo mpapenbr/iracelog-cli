@@ -24,6 +24,7 @@ type ReplayDataProvider interface {
 	NextDriverData() *racestatev1.PublishDriverDataRequest
 	NextStateData() *racestatev1.PublishStateRequest
 	NextSpeedmapData() *racestatev1.PublishSpeedmapRequest
+	MapSessionNumToType(sessionNum uint32) commonv1.SessionType
 }
 type ReplayOption func(*ReplayTask)
 
@@ -38,6 +39,7 @@ func NewReplayTask(
 		dest:         dest,
 		myLog:        log.Default(),
 		ctx:          context.Background(),
+		ffPreRace:    true,
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -48,6 +50,12 @@ func NewReplayTask(
 func WithFastForward(ff time.Duration) ReplayOption {
 	return func(r *ReplayTask) {
 		r.fastForward = ff
+	}
+}
+
+func WithFastForwardPreRace(arg bool) ReplayOption {
+	return func(r *ReplayTask) {
+		r.ffPreRace = arg
 	}
 }
 
@@ -95,10 +103,14 @@ type ReplayTask struct {
 	tokenProvider  func() string
 	speed          int
 	myLog          *log.Logger // used to for replay task related logging
+	ffPreRace      bool        // fast forward messages prior to race session
 }
 
-func (p *peekDriverData) ts() time.Time {
-	return p.dataReq.Timestamp.AsTime()
+func (p *peekDriverData) stamp() *stampInfo {
+	return &stampInfo{
+		ts:          p.dataReq.Timestamp.AsTime(),
+		sessionType: p.mapFunc(p.dataReq.SessionNum),
+	}
 }
 
 func (p *peekDriverData) publish() error {
@@ -110,8 +122,11 @@ func (p *peekDriverData) publish() error {
 	return nil
 }
 
-func (p *peekStateData) ts() time.Time {
-	return p.dataReq.Timestamp.AsTime()
+func (p *peekStateData) stamp() *stampInfo {
+	return &stampInfo{
+		ts:          p.dataReq.Timestamp.AsTime(),
+		sessionType: p.mapFunc(p.dataReq.Session.SessionNum),
+	}
 }
 
 func (p *peekStateData) publish() error {
@@ -124,12 +139,18 @@ func (p *peekStateData) publish() error {
 }
 
 // --- SpeedmapData ---
-func (p *peekSpeedmapData) ts() time.Time {
+func (p *peekSpeedmapData) stamp() *stampInfo {
 	if p.dataReq == nil {
-		return time.Unix(0, 0).Add(1<<63 - 1) // very far in the future
+		return &stampInfo{
+			ts:          time.Unix(0, 0).Add(1<<63 - 1), // very far in the future
+			sessionType: commonv1.SessionType_SESSION_TYPE_PRACTICE,
+		}
 	}
 
-	return p.dataReq.Timestamp.AsTime()
+	return &stampInfo{
+		ts:          p.dataReq.Timestamp.AsTime(),
+		sessionType: commonv1.SessionType_SESSION_TYPE_RACE,
+	}
 }
 
 func (p *peekSpeedmapData) publish() error {
@@ -187,20 +208,29 @@ func (r *ReplayTask) sendData() {
 	pData = append(pData, //
 		&peekStateData{
 			commonStateData[racestatev1.PublishStateRequest]{
-				r: r, dataChan: r.stateChan, providerType: StateData,
-				logger: r.myLog.Named("state"),
+				r:            r,
+				dataChan:     r.stateChan,
+				providerType: StateData,
+				logger:       r.myLog.Named("state"),
+				mapFunc:      r.dataProvider.MapSessionNumToType,
 			},
 		},
 		&peekDriverData{
 			commonStateData[racestatev1.PublishDriverDataRequest]{
-				r: r, dataChan: r.driverDataChan, providerType: DriverData,
-				logger: r.myLog.Named("driver"),
+				r:            r,
+				dataChan:     r.driverDataChan,
+				providerType: DriverData,
+				logger:       r.myLog.Named("driver"),
+				mapFunc:      r.dataProvider.MapSessionNumToType,
 			},
 		},
 		&peekSpeedmapData{
 			commonStateData[racestatev1.PublishSpeedmapRequest]{
-				r: r, dataChan: r.speedmapChan, providerType: SpeedmapData,
-				logger: r.myLog.Named("speedmap"),
+				r:            r,
+				dataChan:     r.speedmapChan,
+				providerType: SpeedmapData,
+				logger:       r.myLog.Named("speedmap"),
+				mapFunc:      r.dataProvider.MapSessionNumToType,
 			},
 		},
 	)
@@ -216,18 +246,20 @@ func (r *ReplayTask) sendData() {
 	}
 	pData = init
 	lastTs := time.Time{}
+	lastSessionType := commonv1.SessionType_SESSION_TYPE_PRACTICE
 
 	for {
 		var selector providerType
 		var current peek
 		var delta time.Duration
 		var currentIdx int
+
 		// create a max time from  (don't use time.Unix(1<<63-1), that's not what we want)
 		nextTs := time.Unix(0, 0).Add(1<<63 - 1)
 
 		for i, p := range pData {
-			if p.ts().Before(nextTs) {
-				nextTs = p.ts()
+			if p.stamp().ts.Before(nextTs) {
+				nextTs = p.stamp().ts
 				selector = p.provider()
 				current = pData[i]
 				currentIdx = i
@@ -236,7 +268,9 @@ func (r *ReplayTask) sendData() {
 		r.computeFastForwardStop(nextTs)
 
 		if !lastTs.IsZero() {
-			wait := r.calcWaitTime(nextTs, lastTs)
+			// use lastSessionType because waitTime should only be calculated
+			// if we are within a race session
+			wait := r.calcWaitTime(nextTs, lastTs, lastSessionType)
 			if wait > 0 {
 				r.myLog.Debug("Sleeping",
 					log.Time("time", nextTs),
@@ -251,6 +285,7 @@ func (r *ReplayTask) sendData() {
 			r.myLog.Error("No provider found")
 			return
 		}
+		lastSessionType = current.stamp().sessionType
 		if err := current.publish(); err != nil {
 			st, ok := status.FromError(err)
 			if ok {
@@ -282,7 +317,14 @@ func (r *ReplayTask) computeFastForwardStop(cur time.Time) {
 	}
 }
 
-func (r *ReplayTask) calcWaitTime(nextTs, lastTs time.Time) time.Duration {
+func (r *ReplayTask) calcWaitTime(
+	nextTs, lastTs time.Time,
+	sType commonv1.SessionType,
+) time.Duration {
+	// we don't want to wait for messages prior to race start if ffPreRace is set
+	if r.ffPreRace && sType != commonv1.SessionType_SESSION_TYPE_RACE {
+		return 0
+	}
 	delta := nextTs.Sub(lastTs)
 
 	// handle fast forward
