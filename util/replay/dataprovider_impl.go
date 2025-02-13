@@ -12,9 +12,11 @@ import (
 	"github.com/mpapenbr/iracelog-cli/log"
 )
 
-type ProvideEventRequest func() *providerv1.RegisterEventRequest
+type (
+	ProvideEventRequest func() *providerv1.RegisterEventRequest
+)
 
-//nolint:whitespace,lll // by design
+//nolint:whitespace // by design
 func NewDataProvider(
 	source *grpc.ClientConn,
 	eventId uint32,
@@ -24,12 +26,38 @@ func NewDataProvider(
 	getLogger := func(name string) *log.Logger {
 		return log.Default().Named("replay").Named(name)
 	}
+	eventReq := eventRequestProvider()
+	mapFunc := func(sessionNum uint32) commonv1.SessionType {
+		if sessionNum < uint32(len(eventReq.Event.Sessions)) {
+			return eventReq.Event.Sessions[sessionNum].Type
+		}
+		return commonv1.SessionType_SESSION_TYPE_PRACTICE
+	}
 	ret := &dataProviderImpl{
 		source:               source,
 		eventRequestProvider: eventRequestProvider,
-		stateFetcher:         initStateDataFetcher(service, getLogger("state"), eventId, time.Time{}, 100),
-		speedmapFetcher:      initSpeedmapDataFetcher(service, getLogger("speedmap"), eventId, time.Time{}, 100),
-		driverDataFetcher:    initDriverDataFetcher(service, getLogger("driver"), eventId, time.Time{}, 100),
+		sNumToType:           mapFunc,
+		stateFetcher: initStateDataFetcher(
+			service,
+			getLogger("state"),
+			eventId,
+			time.Time{},
+			100,
+		),
+		speedmapFetcher: initSpeedmapDataFetcher(
+			service,
+			getLogger("speedmap"),
+			eventId,
+			time.Time{},
+			100,
+		),
+		driverDataFetcher: initDriverDataFetcher(
+			service,
+			getLogger("driver"),
+			eventId,
+			time.Time{},
+			100,
+		),
 	}
 	return ret
 }
@@ -42,6 +70,7 @@ type dataProviderImpl struct {
 	stateFetcher         myFetcher[racestatev1.PublishStateRequest]
 	speedmapFetcher      myFetcher[racestatev1.PublishSpeedmapRequest]
 	driverDataFetcher    myFetcher[racestatev1.PublishDriverDataRequest]
+	sNumToType           mapToSessionType
 }
 
 //nolint:whitespace // false positive
@@ -83,4 +112,8 @@ func (r *dataProviderImpl) NextSpeedmapData() *racestatev1.PublishSpeedmapReques
 	}
 	item.Event = r.eventSelector
 	return item
+}
+
+func (r *dataProviderImpl) MapSessionNumToType(sessionNum uint32) commonv1.SessionType {
+	return r.sNumToType(sessionNum)
 }

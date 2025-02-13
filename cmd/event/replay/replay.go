@@ -51,7 +51,9 @@ func NewEventReplayCmd() *cobra.Command {
 	cmd.PersistentFlags().DurationVar(&cfg.FastForward,
 		"fast-forward",
 		time.Duration(0),
-		"replay this duration with max speed")
+		"replay this duration with max speed (relative to first event timestamp)")
+	cmd.Flags().BoolVar(&cfg.FFPreRace,
+		"ff-prerace", true, "fast forward prerace events")
 
 	return cmd
 }
@@ -126,7 +128,9 @@ func replayEvent(arg string) {
 			return cfg.Token
 		}))
 	}
-	opts = append(opts, replay.WithLogging(log.Default()))
+	opts = append(opts,
+		replay.WithFastForwardPreRace(cfg.FFPreRace),
+		replay.WithLogging(log.Default()))
 
 	r := replay.NewReplayTask(dest, dp, opts...)
 	if err := r.Replay(e.Event.Id); err != nil {
