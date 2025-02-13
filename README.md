@@ -8,7 +8,7 @@
 [![Semantic Versioning](https://img.shields.io/badge/versioning-semantic-black?style=for-the-badge&logo=semver)][github-releases]
 [![Pre-Commit Enabled](https://img.shields.io/badge/Pre--Commit-Enabled-blue?style=for-the-badge&logo=pre-commit)][precommit-config]
 [![License](https://img.shields.io/github/license/mpapenbr/iracelog-cli?color=red&style=for-the-badge)][project-license]
-[![Go v1.22](https://img.shields.io/badge/Go-%20v1.22-black?style=for-the-badge&logo=go)][gomod-file]
+[![Go v1.24](https://img.shields.io/badge/Go-%20v1.24-black?style=for-the-badge&logo=go)][gomod-file]
 
 Command line interface for iRacelog
 
@@ -77,8 +77,6 @@ command
 ```sh
 make install
 ```
-
-
 
 ### Using Code Formatters
 
@@ -205,8 +203,6 @@ goreleaser release
 
 The current `.goreleaser.yml` is target for creating docker images and artefacts to be created by Github actions.
 
-
-
 ### Running `iracelog-cli`
 
 To run iracelog-cli, use the command
@@ -308,11 +304,9 @@ The remaining labels can be created as needed!
 [github-actions]: ../../actions
 [github-releases]: ../../releases
 [precommit-config]: ./.pre-commit-config.yaml
-
 [gomod-file]: ../main/go.mod
 [github-actions-tests]: ../../actions/workflows/tests.yml
 [dependabot-pulls]: ../../pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot
-
 [semver-link]: https://semver.org
 [pre-commit]: https://pre-commit.com
 [github-repo]: https://github.com/new
