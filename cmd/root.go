@@ -19,6 +19,7 @@ import (
 	"github.com/mpapenbr/iracelog-cli/cmd/predict"
 	"github.com/mpapenbr/iracelog-cli/cmd/provider"
 	"github.com/mpapenbr/iracelog-cli/cmd/stress"
+	"github.com/mpapenbr/iracelog-cli/cmd/tenant"
 	"github.com/mpapenbr/iracelog-cli/cmd/track"
 	"github.com/mpapenbr/iracelog-cli/config"
 	"github.com/mpapenbr/iracelog-cli/log"
@@ -117,6 +118,7 @@ func init() {
 	rootCmd.AddCommand(live.NewLiveCmd())
 	rootCmd.AddCommand(stress.NewStressCmd())
 	rootCmd.AddCommand(track.NewTrackCmd())
+	rootCmd.AddCommand(tenant.NewTenantCmd())
 	rootCmd.AddCommand(predict.NewPredictCmd())
 
 	// add commands here
