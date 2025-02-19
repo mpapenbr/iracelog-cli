@@ -1,11 +1,11 @@
-package track
+package tenant
 
 import (
 	"fmt"
 	"io"
 	"os"
 
-	trackv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/track/v1"
+	tenantv1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/tenant/v1"
 
 	"github.com/mpapenbr/iracelog-cli/util/output"
 )
@@ -14,44 +14,46 @@ type (
 	Option       func(*OutputConfig)
 	OutputConfig struct {
 		format     output.Format
-		attrs      []TrackAttr
+		attrs      []TenantAttr
 		outputFunc func(s string)
 		writer     io.Writer
 	}
 	Output interface {
 		Header()
-		Line(data *trackv1.Track)
+		Line(data *tenantv1.Tenant)
 		Flush()
 	}
 
-	trackOutput struct {
+	tenantOutput struct {
 		outputter formatOutput
 	}
 	formatOutput interface {
 		header()
-		line(data *trackv1.Track)
+		line(data *tenantv1.Tenant)
 		flush()
 	}
 )
 
-func NewTrackOutput(opts ...Option) Output {
+func NewTenantOutput(opts ...Option) Output {
 	cfg := &OutputConfig{
 		outputFunc: func(s string) { fmt.Println(s) },
 		format:     output.FormatText,
-		attrs:      []TrackAttr{},
+		attrs:      []TenantAttr{},
 		writer:     os.Stdout,
 	}
 	for _, opt := range opts {
 		opt(cfg)
 	}
-	//nolint:exhaustive // by design
+
 	switch cfg.format {
 	case output.FormatCSV:
-		return &trackOutput{outputter: newTrackCsv(cfg)}
+		return &tenantOutput{outputter: newTenantCsv(cfg)}
 	case output.FormatJSON:
-		return &trackOutput{outputter: &trackJson{config: cfg}}
+		return &tenantOutput{outputter: &tenantJson{config: cfg}}
+	case output.FormatText:
+		return &tenantOutput{outputter: &tenantText{config: cfg}}
 	}
-	return &trackOutput{outputter: &trackEmpty{config: cfg}}
+	return &tenantOutput{outputter: &tenantEmpty{config: cfg}}
 }
 
 func WithFormat(f output.Format) Option {
@@ -66,26 +68,26 @@ func WithWriter(w io.Writer) Option {
 	}
 }
 
-func WithTrackAttrs(attrs []TrackAttr) Option {
+func WithTenantAttrs(attrs []TenantAttr) Option {
 	return func(cfg *OutputConfig) {
 		cfg.attrs = attrs
 	}
 }
 
-func WithAllTrackAttrs() Option {
+func WithAllTenantAttrs() Option {
 	return func(cfg *OutputConfig) {
-		cfg.attrs = SupportedTrackAttrs()
+		cfg.attrs = SupportedTenantAttrs()
 	}
 }
 
-func (s *trackOutput) Header() {
+func (s *tenantOutput) Header() {
 	s.outputter.header()
 }
 
-func (s *trackOutput) Line(data *trackv1.Track) {
+func (s *tenantOutput) Line(data *tenantv1.Tenant) {
 	s.outputter.line(data)
 }
 
-func (s *trackOutput) Flush() {
+func (s *tenantOutput) Flush() {
 	s.outputter.flush()
 }

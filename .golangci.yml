@@ -28,7 +28,6 @@ issues:
   # make issues output unique by line, default is true
   uniq-by-line: true
 
-
 # output configuration options
 output:
   # default is "colored-line-number"
@@ -75,8 +74,8 @@ linters-settings:
 
     # list of functions to exclude from checks, each entry is a function to exclude
     # checkout https://github.com/kisielk/errcheck#excluding-functions for details
-    exclude-functions:
-      # - io/ioutil.ReadFile
+    # exclude-functions:
+    # - io/ioutil.ReadFile
 
   errorlint:
     # check whether fmt.Errorf uses the %w verb for formatting errors.
@@ -201,26 +200,6 @@ linters-settings:
     # minimal code complexity to report, 30 by default (recommended 10-20)
     min-complexity: 15
 
-  godot:
-    # comments to be checked: `declarations`, `toplevel`, or `all`
-    scope: all
-    # list of regexps for excluding particular comment lines from check
-    exclude:
-      # example: exclude comments which contain numbers
-      # - '[0-9]+'
-    # check that each sentence starts with a capital letter
-    capital: true
-
-  godox:
-    # report any comments starting with keywords, useful for TODO or FIXME comments
-    # left in the code accidentally, and should be resolved before merges
-    keywords: # default keywords are TODO, BUG, and FIXME
-      - TODO
-      - BUG
-      - NOTE
-      - OPTIMIZE
-      - HACK
-
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
@@ -233,10 +212,6 @@ linters-settings:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
     local-prefixes: "github.com/mpapenbr/iracelog-cli"
-
-  golint:
-    # minimal confidence for issues, default is 0.8
-    min-confidence: 0.8
 
   gosec:
     # list of available rules: https://github.com/securego/gosec#available-rules
@@ -255,9 +230,6 @@ linters-settings:
     checks: ["all"] # https://staticcheck.io/docs/options#checks for more info
 
   govet:
-    # report about shadowed variables
-    shadow: true
-
     # settings per analyzer
     # settings:
     #   printf: # analyzer name, run `go tool vet help` to see all analyzers
@@ -275,19 +247,6 @@ linters-settings:
       - fieldalignment
     disable-all: false
 
-  depguard:
-    # linter to check if package imports are in a list of acceptable packages
-    # see https://golangci-lint.run/usage/linters/#depguard
-
-  ifshort:
-    # max length of variable declaration measured in number of lines, beyond which
-    # linter won't suggest using short syntax - higher priority than `max-decl-chars`
-    max-decl-lines: 1
-
-    # max length of variable declaration measured in number of characters, beyond which
-    #  linter won't suggest using short syntax
-    max-decl-chars: 30
-
   lll:
     # max line length, lines longer will be reported. Default is 120.
     line-length: 88 # tab (`\t`) is counted as 1 character by default
@@ -296,10 +255,6 @@ linters-settings:
   makezero:
     # find slice declarations not initialized with zero length, and used with append
     always: false # allow only slices initialized with length zero. Default false
-
-  maligned:
-    # print struct with more effective memory layout or not, false by default
-    suggest-new: true
 
   misspell:
     # Correct spellings using locale preferences for US or UK.
@@ -398,9 +353,6 @@ linters-settings:
     # interfaces. All text editor integrations with `golangci-lint` call it on a
     # directory with the changed file.
     check-exported: false
-
-  unused:
-    # Checks code for unused constants, variables, functions and types
 
   whitespace:
     # Tool for detection of leading and trailing whitespace - checks for unnecessary

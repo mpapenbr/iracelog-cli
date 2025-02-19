@@ -60,7 +60,7 @@ func WithFormat(f output.Format) Option {
 	}
 }
 
-func WithWrier(w io.Writer) Option {
+func WithWriter(w io.Writer) Option {
 	return func(cfg *OutputConfig) {
 		cfg.writer = w
 	}
