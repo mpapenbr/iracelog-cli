@@ -3,7 +3,6 @@ package deleteit
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	tenantv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/tenant/v1/tenantv1grpc"
@@ -24,16 +23,40 @@ func NewTenantDeleteCmd() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if id, err := strconv.Atoi(args[0]); err == nil {
-				deleteTenant(cmd.Context(), uint32(id))
-			}
+			deleteTenant(cmd.Context())
 		},
-		Args: cobra.ExactArgs(1),
 	}
+	cmd.Flags().StringVar(&externalId,
+		"external-id",
+		"",
+		"external id of the tenant")
+	cmd.Flags().StringVar(&name,
+		"name",
+		"",
+		"name of the tenant")
+
+	cmd.MarkFlagsOneRequired("name", "external-id")
 	return cmd
 }
 
-func deleteTenant(ctx context.Context, id uint32) {
+var (
+	externalId string
+	name       string
+)
+
+type (
+	tenantParam struct{}
+)
+
+func (t tenantParam) ExternalId() string {
+	return externalId
+}
+
+func (t tenantParam) Name() string {
+	return name
+}
+
+func deleteTenant(ctx context.Context) {
 	logger := log.GetFromContext(ctx)
 	logger.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
@@ -41,8 +64,9 @@ func deleteTenant(ctx context.Context, id uint32) {
 		logger.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
+	sel := util.ResolveTenant(tenantParam{})
 	req := tenantv1.DeleteTenantRequest{
-		Id: id,
+		Tenant: sel,
 	}
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(

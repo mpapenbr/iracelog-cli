@@ -81,6 +81,7 @@ func createTenant(ctx context.Context, name string) {
 		return
 	}
 	fmt.Println("Tenant created")
+	fmt.Println("The api key is: ", apiKey)
 	out := cmdopts.ConfigureOutput(format, attrs)
 	out.Header()
 	out.Line(r.Tenant)

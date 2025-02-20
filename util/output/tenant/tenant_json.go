@@ -21,14 +21,10 @@ func (s *tenantJson) line(data *tenantv1.Tenant) {
 	out := make(map[string]interface{}, 0)
 	for _, attr := range s.config.attrs {
 		switch attr {
-		case TenantId:
-			out[attr.String()] = data.GetId()
 		case TenantExternalId:
 			out[attr.String()] = data.GetExternalId().GetId()
 		case TenantName:
 			out[attr.String()] = data.GetName()
-		case TenantApiKey:
-			out[attr.String()] = data.GetApiKey()
 		case TenantIsActive:
 			out[attr.String()] = data.GetIsActive()
 
