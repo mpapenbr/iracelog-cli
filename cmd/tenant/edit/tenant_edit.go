@@ -3,7 +3,6 @@ package edit
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	tenantv1grpc "buf.build/gen/go/mpapenbr/iracelog/grpc/go/iracelog/tenant/v1/tenantv1grpc"
@@ -19,6 +18,7 @@ import (
 
 var (
 	name           string
+	newname        string
 	apiKey         string
 	apiKeyLen      uint
 	generateApiKey bool
@@ -26,6 +26,7 @@ var (
 	format         string
 	enableActive   bool
 	disableActive  bool
+	externalId     string
 )
 
 func NewTenantEditCmd() *cobra.Command {
@@ -36,14 +37,11 @@ func NewTenantEditCmd() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if id, err := strconv.Atoi(args[0]); err == nil {
-				editTenant(cmd.Context(), uint32(id))
-			}
+			editTenant(cmd.Context())
 		},
-		Args: cobra.ExactArgs(1),
 	}
-	cmd.Flags().StringVar(&name,
-		"name", "", "assign new name to tenant")
+	cmd.Flags().StringVar(&newname,
+		"new-name", "", "assign new name to tenant")
 	cmd.Flags().StringVar(&apiKey,
 		"api-key", "", "assign api key to tenant")
 	cmd.Flags().UintVar(&apiKeyLen,
@@ -58,13 +56,34 @@ func NewTenantEditCmd() *cobra.Command {
 		"tenant attributes to display")
 	cmd.Flags().StringVar(&format, "format", "text",
 		"output format (text, json,csv)")
+	cmd.Flags().StringVar(&externalId,
+		"external-id",
+		"",
+		"external id of the tenant")
+	cmd.Flags().StringVar(&name,
+		"name",
+		"",
+		"name of the tenant")
 	cmd.MarkFlagsMutuallyExclusive("enable-active", "disable-active")
 	cmd.MarkFlagsMutuallyExclusive("api-key", "generate-api-key")
+	cmd.MarkFlagsOneRequired("name", "external-id")
 	return cmd
 }
 
+type (
+	tenantParam struct{}
+)
+
+func (t tenantParam) ExternalId() string {
+	return externalId
+}
+
+func (t tenantParam) Name() string {
+	return name
+}
+
 //nolint:funlen // by design
-func editTenant(ctx context.Context, id uint32) {
+func editTenant(ctx context.Context) {
 	logger := log.GetFromContext(ctx)
 	logger.Info("connect ism ", log.String("addr", config.DefaultCliArgs().Addr))
 	conn, err := util.ConnectGrpc(config.DefaultCliArgs())
@@ -72,7 +91,7 @@ func editTenant(ctx context.Context, id uint32) {
 		logger.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
-
+	sel := util.ResolveTenant(tenantParam{})
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
@@ -82,18 +101,17 @@ func editTenant(ctx context.Context, id uint32) {
 
 	// request tenant data
 	var cur *tenantv1.GetTenantResponse
-	if cur, err = c.GetTenant(reqCtx, &tenantv1.GetTenantRequest{Id: id}); err != nil {
+	if cur, err = c.GetTenant(reqCtx,
+		&tenantv1.GetTenantRequest{Tenant: sel}); err != nil {
 		logger.Fatal("could not get tenant", log.ErrorField(err))
 	}
 
 	req := tenantv1.UpdateTenantRequest{
-		Id:       id,
-		Name:     cur.Tenant.Name,
+		Tenant:   sel,
 		IsActive: cur.Tenant.IsActive,
-		ApiKey:   cur.Tenant.ApiKey,
 	}
-	if name != "" {
-		req.Name = name
+	if newname != "" {
+		req.Name = newname
 	}
 	if generateApiKey {
 		if apiKey, err = util.GenerateRandomString(apiKeyLen); err != nil {

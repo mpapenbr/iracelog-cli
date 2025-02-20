@@ -37,14 +37,10 @@ func (s *tenantCsv) line(data *tenantv1.Tenant) {
 	for _, attr := range s.config.attrs {
 		var valueString string
 		switch attr {
-		case TenantId:
-			valueString = fmt.Sprintf("%.d", data.GetId())
 		case TenantExternalId:
 			valueString = data.GetExternalId().GetId()
 		case TenantName:
 			valueString = data.GetName()
-		case TenantApiKey:
-			valueString = data.GetApiKey()
 		case TenantIsActive:
 			valueString = fmt.Sprintf("%t", data.GetIsActive())
 		case TenantUndefined:
