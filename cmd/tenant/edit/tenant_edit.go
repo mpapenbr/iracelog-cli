@@ -136,6 +136,9 @@ func editTenant(ctx context.Context) {
 	}
 
 	fmt.Println("Tenant updated")
+	if apiKey != "" {
+		fmt.Println("The api key is: ", apiKey)
+	}
 	out := cmdopts.ConfigureOutput(format, attrs)
 	out.Header()
 	out.Line(r.Tenant)
