@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/mpapenbr/iracelog-cli/cmd/demo"
 	"github.com/mpapenbr/iracelog-cli/cmd/event"
 	"github.com/mpapenbr/iracelog-cli/cmd/live"
 	"github.com/mpapenbr/iracelog-cli/cmd/predict"
@@ -120,6 +121,7 @@ func init() {
 	rootCmd.AddCommand(track.NewTrackCmd())
 	rootCmd.AddCommand(tenant.NewTenantCmd())
 	rootCmd.AddCommand(predict.NewPredictCmd())
+	rootCmd.AddCommand(demo.NewDemoCmd())
 
 	// add commands here
 	// e.g. rootCmd.AddCommand(sampleCmd.NewSampleCmd())
