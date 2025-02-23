@@ -21,7 +21,32 @@ func NewProviderListCmd() *cobra.Command {
 			return listEvents(cmd.Context())
 		},
 	}
+	cmd.Flags().StringVar(&externalId,
+		"tenant-external-id",
+		"",
+		"external id of the tenant")
+	cmd.Flags().StringVar(&name,
+		"tenant-name",
+		"",
+		"name of the tenant")
 	return cmd
+}
+
+var (
+	externalId string
+	name       string
+)
+
+type (
+	tenantParam struct{}
+)
+
+func (t tenantParam) ExternalId() string {
+	return externalId
+}
+
+func (t tenantParam) Name() string {
+	return name
 }
 
 func listEvents(ctx context.Context) error {
@@ -33,7 +58,9 @@ func listEvents(ctx context.Context) error {
 		return err
 	}
 	defer conn.Close()
-	req := providerv1.ListLiveEventsRequest{}
+	req := providerv1.ListLiveEventsRequest{
+		TenantSelector: util.ResolveTenant(tenantParam{}),
+	}
 	c := providerv1grpc.NewProviderServiceClient(conn)
 	r, err := c.ListLiveEvents(context.Background(), &req)
 	if err != nil {

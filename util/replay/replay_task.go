@@ -165,8 +165,12 @@ func (p *peekSpeedmapData) publish() error {
 func (r *ReplayTask) Replay(eventId uint32) error {
 	r.providerService = providerv1grpc.NewProviderServiceClient(r.dest)
 	r.raceStateService = racestatev1grpc.NewRaceStateServiceClient(r.dest)
-	r.localCtx, r.localCancel = context.WithCancel(context.Background())
+	r.localCtx, r.localCancel = context.WithCancel(r.ctx)
 	defer r.localCancel()
+	r.myLog.Debug("ReplayTask started",
+		log.Any("context", r.ctx),
+		log.Any("localContext", r.localCtx),
+	)
 
 	r.stateChan = make(chan *racestatev1.PublishStateRequest)
 	r.speedmapChan = make(chan *racestatev1.PublishSpeedmapRequest)
@@ -293,10 +297,12 @@ func (r *ReplayTask) sendData() {
 				switch st.Code() {
 				case codes.DeadlineExceeded, codes.Canceled, codes.Aborted:
 					r.myLog.Debug("context deadline exceeded")
+					r.localCancel()
 					return
 				}
 			}
 			r.myLog.Error("Error publishing data", log.ErrorField(err))
+			r.localCancel()
 			return
 		}
 		if !current.refill() {
@@ -352,7 +358,7 @@ func (r *ReplayTask) provideDriverData() {
 		case r.driverDataChan <- item:
 			i++
 			r.myLog.Debug("Sent data on driverDataChen", log.Int("i", i))
-		case <-r.ctx.Done():
+		case <-r.localCtx.Done():
 			close(r.driverDataChan)
 			r.myLog.Debug("Context done (inner)")
 			return
@@ -374,7 +380,7 @@ func (r *ReplayTask) provideStateData() {
 		case r.stateChan <- item:
 			i++
 			r.myLog.Debug("Sent data on stateDataChan", log.Int("i", i))
-		case <-r.ctx.Done():
+		case <-r.localCtx.Done():
 			close(r.stateChan)
 			r.myLog.Debug("Context done (inner)")
 			return
@@ -396,7 +402,7 @@ func (r *ReplayTask) provideSpeedmapData() {
 		case r.speedmapChan <- item:
 			i++
 			r.myLog.Debug("Sent data on speedmapChan", log.Int("i", i))
-		case <-r.ctx.Done():
+		case <-r.localCtx.Done():
 			close(r.speedmapChan)
 			r.myLog.Debug("Context done (inner)")
 			return

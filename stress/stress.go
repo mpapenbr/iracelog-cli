@@ -66,6 +66,7 @@ type JobProcessor struct {
 	targetClientProvider func() *grpc.ClientConn
 	sourceClientProvider func() *grpc.ClientConn
 	finishHandler        FinishHandler
+	ctx                  context.Context
 
 	// collector   dvlResultsCollector
 	workerStats []WorkerStats
@@ -77,6 +78,12 @@ type OptionFunc func(sp *JobProcessor)
 func WithJobHandler(handler JobHandler) OptionFunc {
 	return func(sp *JobProcessor) {
 		sp.jobHandler = handler
+	}
+}
+
+func WithContext(ctx context.Context) OptionFunc {
+	return func(sp *JobProcessor) {
+		sp.ctx = ctx
 	}
 }
 
@@ -161,6 +168,7 @@ func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 		doSchedule:    true,
 		pLogger:       log.Default(),
 		wLogger:       log.Default(),
+		ctx:           context.Background(),
 	}
 	for _, opt := range opts {
 		opt(ret)
@@ -171,14 +179,20 @@ func NewJobProcessor(opts ...OptionFunc) *JobProcessor {
 //nolint:funlen // by design
 func (p *JobProcessor) Run() {
 	// this is used to cancel the processor and resultCollector
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(p.ctx)
+	defer cancel()
 	// a different context is used for the workers
 	// to ensure they are terminated at the deadline
-	workerCtx, workerCtxCancel := context.WithTimeout(context.Background(), p.duration)
+	var workerCtx context.Context
+	var workerCtxCancel context.CancelFunc
+	if p.duration > 0 {
+		workerCtx, workerCtxCancel = context.WithTimeout(context.Background(), p.duration)
+		deadline, _ := workerCtx.Deadline()
+		p.pLogger.Info("Processor deadline", log.Time("deadline", deadline))
+	} else {
+		workerCtx, workerCtxCancel = context.WithCancel(p.ctx)
+	}
 	defer workerCtxCancel()
-	deadline, _ := workerCtx.Deadline()
-	p.pLogger.Info("Processor deadline", log.Time("deadline", deadline))
-
 	// setup result collector
 	go p.resultCollector(ctx)
 	if p.rampUpDuration > 0 && p.rampUpIncrease > 0 {
@@ -208,18 +222,20 @@ func (p *JobProcessor) Run() {
 
 	// setup timer to stop the stress test
 
-	go func() {
-		p.pLogger.Info("processing time", log.Duration("duration", p.duration))
-		time.Sleep(p.duration)
-		p.pLogger.Debug("Signaling reschedule stop")
-		p.doSchedule = false
+	if p.duration > 0 {
+		go func() {
+			p.pLogger.Info("processing time", log.Duration("duration", p.duration))
+			time.Sleep(p.duration)
+			p.pLogger.Debug("Signaling reschedule stop")
+			p.doSchedule = false
 
-		p.pLogger.Debug("Waiting for outstanding results")
-		p.wgResult.Wait()
+			p.pLogger.Debug("Waiting for outstanding results")
+			p.wgResult.Wait()
 
-		p.pLogger.Debug("Signaling cancel")
-		cancel()
-	}()
+			p.pLogger.Debug("Signaling cancel")
+			cancel()
+		}()
+	}
 
 	p.pLogger.Debug("Waiting for jobs to terminate")
 	p.wgWorker.Wait()
@@ -284,7 +300,7 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			p.pLogger.Info("maxDuration reached, terminating collector")
+			p.pLogger.Info("context closed - terminating result collector")
 			return
 
 		case result := <-p.results:
