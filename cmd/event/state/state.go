@@ -26,7 +26,7 @@ func NewStateCmd() *cobra.Command {
 		"session num to be used (-1 means: latest session)")
 	cmd.PersistentFlags().StringVar(&options.RecordStamp, "record-stamp", "",
 		"timestamp time where data should begin")
-	cmd.PersistentFlags().Int32Var(&options.Id, "id", -1,
+	cmd.PersistentFlags().Int32Var(&options.ID, "id", -1,
 		"sequence id to be used for start selector (internal sequence)")
 
 	cmd.PersistentFlags().Int32Var(&options.NumEntries, "num", 0,

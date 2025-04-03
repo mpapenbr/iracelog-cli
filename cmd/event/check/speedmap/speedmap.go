@@ -61,7 +61,7 @@ func checkSpeedmaps(ctx context.Context, arg string) {
 	}
 
 	c := racestatev1grpc.NewRaceStateServiceClient(conn)
-	var prevTs *timestamppb.Timestamp = nil
+	var prevTS *timestamppb.Timestamp = nil
 
 	var resp grpc.ServerStreamingClient[racestatev1.GetSpeedmapStreamResponse]
 
@@ -82,16 +82,16 @@ func checkSpeedmaps(ctx context.Context, arg string) {
 			logger.Error("error fetching speedmaps", log.ErrorField(err))
 			return
 		}
-		if prevTs != nil {
-			delta := s.Speedmap.Timestamp.AsTime().Sub(prevTs.AsTime())
+		if prevTS != nil {
+			delta := s.Speedmap.Timestamp.AsTime().Sub(prevTS.AsTime())
 			if delta > options.GapThreshold {
 				logger.Info("Gap detected.",
-					log.Time("prev", prevTs.AsTime()),
+					log.Time("prev", prevTS.AsTime()),
 					log.Time("this", s.Speedmap.Timestamp.AsTime()),
 
 					log.Duration("delta", delta))
 			}
 		}
-		prevTs = s.Speedmap.Timestamp
+		prevTS = s.Speedmap.Timestamp
 	}
 }

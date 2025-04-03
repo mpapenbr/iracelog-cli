@@ -7,21 +7,21 @@ import (
 )
 
 type (
-	tenantJson struct {
+	tenantJSON struct {
 		config *OutputConfig
 	}
 )
 
-func (s *tenantJson) header() {
+func (s *tenantJSON) header() {
 	// empty by design - not needed for json
 }
 
 //nolint:cyclop // by design
-func (s *tenantJson) line(data *tenantv1.Tenant) {
+func (s *tenantJSON) line(data *tenantv1.Tenant) {
 	out := make(map[string]interface{}, 0)
 	for _, attr := range s.config.attrs {
 		switch attr {
-		case TenantExternalId:
+		case TenantExternalID:
 			out[attr.String()] = data.GetExternalId().GetId()
 		case TenantName:
 			out[attr.String()] = data.GetName()
@@ -39,6 +39,6 @@ func (s *tenantJson) line(data *tenantv1.Tenant) {
 	}
 }
 
-func (s *tenantJson) flush() {
+func (s *tenantJSON) flush() {
 	// empty by design - not needed for json
 }

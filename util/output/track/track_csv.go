@@ -38,7 +38,7 @@ func (s *trackCsv) line(data *trackv1.Track) {
 		var valueString string
 		//nolint:exhaustive // by design
 		switch attr {
-		case TrackId:
+		case TrackID:
 			valueString = fmt.Sprintf("%d", data.Id)
 		case TrackName:
 			valueString = data.Name

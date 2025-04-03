@@ -6,16 +6,16 @@ import (
 
 type (
 	TenantSelParam interface {
-		ExternalId() string
+		ExternalID() string
 		Name() string
 	}
 )
 
 func ResolveTenant(tsl TenantSelParam) *commonv1.TenantSelector {
-	if tsl.ExternalId() != "" {
+	if tsl.ExternalID() != "" {
 		return &commonv1.TenantSelector{
 			Arg: &commonv1.TenantSelector_ExternalId{
-				ExternalId: &commonv1.UUID{Id: tsl.ExternalId()},
+				ExternalId: &commonv1.UUID{Id: tsl.ExternalID()},
 			},
 		}
 	}

@@ -11,7 +11,7 @@ var (
 	SessionNum  int32         // Session num to be used
 	RecordStamp string        // timestamp time where data should begin
 	NumEntries  int32         // number of entries to process
-	Id          int32         // Id to be used for start selector (internal sequence)
+	ID          int32         // Id to be used for start selector (internal sequence)
 
 )
 
@@ -29,8 +29,8 @@ func (m myStartSelParam) SessionNum() int {
 	return int(SessionNum)
 }
 
-func (m myStartSelParam) Id() int {
-	return int(Id)
+func (m myStartSelParam) ID() int {
+	return int(ID)
 }
 
 func BuildStartSelParam() util.StartSelParam {

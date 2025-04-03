@@ -52,8 +52,8 @@ func editPitData(arg string) {
 		log.Fatal("did not connect", log.ErrorField(err))
 	}
 	defer conn.Close()
-	var trackId int
-	if trackId, err = strconv.Atoi(arg); err != nil {
+	var trackID int
+	if trackID, err = strconv.Atoi(arg); err != nil {
 		log.Error("could not convert track id", log.ErrorField(err), log.String("track", arg))
 		return
 	}
@@ -69,12 +69,12 @@ func editPitData(arg string) {
 
 	t := trackv1grpc.NewTrackServiceClient(conn)
 	req := trackv1.GetTrackRequest{
-		Id: uint32(trackId),
+		Id: uint32(trackID),
 	}
 	var trackResp *trackv1.GetTrackResponse
 	trackResp, err = t.GetTrack(context.Background(), &req)
 	if err != nil {
-		log.Error("could not get track", log.ErrorField(err), log.Int("trackId", trackId))
+		log.Error("could not get track", log.ErrorField(err), log.Int("trackId", trackID))
 		return
 	}
 
@@ -89,7 +89,7 @@ func editPitData(arg string) {
 		}
 	}
 	updateReq := trackv1.UpdatePitInfoRequest{
-		Id: uint32(trackId),
+		Id: uint32(trackID),
 		PitInfo: &trackv1.PitInfo{
 			Entry:      editPitEntry,
 			Exit:       editPitExit,
@@ -97,7 +97,7 @@ func editPitData(arg string) {
 		},
 	}
 	if _, err := t.UpdatePitInfo(ctx, &updateReq); err != nil {
-		log.Error("could not update track", log.ErrorField(err), log.Int("trackId", trackId))
+		log.Error("could not update track", log.ErrorField(err), log.Int("trackId", trackID))
 		return
 	}
 	log.Info("PitInfo updated.")

@@ -80,12 +80,12 @@ func runTransfer(args []string) {
 
 	tracks := []int{}
 	for _, arg := range args {
-		if trackId, err := strconv.Atoi(arg); err != nil {
+		if trackID, err := strconv.Atoi(arg); err != nil {
 			log.Warn("could not convert track id",
 				log.ErrorField(err), log.String("track", arg))
 			continue
 		} else {
-			tracks = append(tracks, trackId)
+			tracks = append(tracks, trackID)
 		}
 	}
 	transferData := transferData{

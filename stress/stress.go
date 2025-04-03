@@ -14,8 +14,8 @@ import (
 )
 
 type Job struct {
-	Id           int              // used for overall id
-	WorkerId     int              // used to identify worker this job is assigned to
+	ID           int              // used for overall id
+	WorkerID     int              // used to identify worker this job is assigned to
 	TargetClient *grpc.ClientConn // used for communication with target backend
 	SourceClient *grpc.ClientConn // used for communication with source backend (if needed)
 	Ctx          context.Context  // used for cancellation
@@ -29,12 +29,12 @@ type JobResult struct {
 }
 
 type JobError struct {
-	JobId int
+	JobID int
 	Error error
 }
 
 type WorkerStats struct {
-	Id       int
+	ID       int
 	JobsDone int
 	Errors   []JobError
 	TimeUsed time.Duration
@@ -70,7 +70,7 @@ type JobProcessor struct {
 
 	// collector   dvlResultsCollector
 	workerStats []WorkerStats
-	nextJobId   int
+	nextJobID   int
 }
 
 type OptionFunc func(sp *JobProcessor)
@@ -242,7 +242,7 @@ func (p *JobProcessor) Run() {
 	p.pLogger.Info("All jobs finished")
 	if p.finishHandler != nil {
 		p.pLogger.Debug("Calling finishHandler")
-		p.finishHandler(p.nextJobId, &p.workerStats)
+		p.finishHandler(p.nextJobID, &p.workerStats)
 		p.pLogger.Debug("Returned from finishHandler")
 	}
 	p.pLogger.Info("End of job processor")
@@ -275,12 +275,12 @@ func (p *JobProcessor) rampUp(ctx context.Context) {
 	}
 }
 
-func (p *JobProcessor) addWorker(ctx context.Context, workerId int) {
+func (p *JobProcessor) addWorker(ctx context.Context, workerID int) {
 	p.wgWorker.Add(1)
 	workerStats := WorkerStats{
-		Id: workerId,
-		Logger: p.wLogger.Named(fmt.Sprintf("%d", workerId)).WithOptions(
-			zap.Fields(log.Int("worker", workerId)),
+		ID: workerID,
+		Logger: p.wLogger.Named(fmt.Sprintf("%d", workerID)).WithOptions(
+			zap.Fields(log.Int("worker", workerID)),
 		),
 	}
 	p.workerStats = append(p.workerStats, workerStats)
@@ -289,8 +289,8 @@ func (p *JobProcessor) addWorker(ctx context.Context, workerId int) {
 
 func (p *JobProcessor) addJobs(numJobs int) {
 	for range numJobs {
-		p.queue <- &Job{Id: p.nextJobId}
-		p.nextJobId++
+		p.queue <- &Job{ID: p.nextJobID}
+		p.nextJobID++
 	}
 }
 
@@ -306,17 +306,17 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 		case result := <-p.results:
 			collected++
 			p.pLogger.Debug("Got result from job",
-				log.Int("jobId", result.Request.Id),
-				log.Int("worker", result.Request.WorkerId),
+				log.Int("jobId", result.Request.ID),
+				log.Int("worker", result.Request.WorkerID),
 				log.Int("collected", collected),
 			)
 
-			ws := &p.workerStats[result.Request.WorkerId]
+			ws := &p.workerStats[result.Request.WorkerID]
 			ws.JobsDone++
 			ws.TimeUsed += result.TimeUsed
 			if result.Error != nil {
 				ws.Errors = append(ws.Errors, JobError{
-					JobId: result.Request.Id, Error: result.Error,
+					JobID: result.Request.ID, Error: result.Error,
 				})
 			}
 			p.wgResult.Done()
@@ -330,11 +330,11 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 						time.Sleep(pauseDur)
 					}
 					if p.doSchedule {
-						p.pLogger.Debug("about to issue next job", log.Int("jobId", p.nextJobId))
-						p.queue <- &Job{Id: p.nextJobId}
-						p.nextJobId++
+						p.pLogger.Debug("about to issue next job", log.Int("jobId", p.nextJobID))
+						p.queue <- &Job{ID: p.nextJobID}
+						p.nextJobID++
 					} else {
-						p.pLogger.Debug("NOT issuing next job, time is up", log.Int("jobId", p.nextJobId))
+						p.pLogger.Debug("NOT issuing next job, time is up", log.Int("jobId", p.nextJobID))
 					}
 				}()
 			}
@@ -362,7 +362,7 @@ func (p *JobProcessor) jobWorker(
 			// used for terminating the job when time is up
 			return
 		case job := <-p.queue:
-			job.WorkerId = workerStats.Id
+			job.WorkerID = workerStats.ID
 			job.TargetClient = targetClient
 			job.SourceClient = sourceClient
 			job.Ctx = ctx

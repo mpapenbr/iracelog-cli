@@ -19,7 +19,7 @@ type (
 //nolint:whitespace // by design
 func NewDataProvider(
 	source *grpc.ClientConn,
-	eventId uint32,
+	eventID uint32,
 	eventRequestProvider ProvideEventRequest,
 ) ReplayDataProvider {
 	service := racestatev1grpc.NewRaceStateServiceClient(source)
@@ -40,21 +40,21 @@ func NewDataProvider(
 		stateFetcher: initStateDataFetcher(
 			service,
 			getLogger("state"),
-			eventId,
+			eventID,
 			time.Time{},
 			100,
 		),
 		speedmapFetcher: initSpeedmapDataFetcher(
 			service,
 			getLogger("speedmap"),
-			eventId,
+			eventID,
 			time.Time{},
 			100,
 		),
 		driverDataFetcher: initDriverDataFetcher(
 			service,
 			getLogger("driver"),
-			eventId,
+			eventID,
 			time.Time{},
 			100,
 		),
@@ -74,12 +74,12 @@ type dataProviderImpl struct {
 }
 
 //nolint:whitespace // false positive
-func (d *dataProviderImpl) ProvideEventData(
-	eventId uint32,
+func (r *dataProviderImpl) ProvideEventData(
+	eventID uint32,
 ) *providerv1.RegisterEventRequest {
-	if d.eventRequestProvider != nil {
-		ret := d.eventRequestProvider()
-		d.eventSelector = &commonv1.EventSelector{Arg: &commonv1.EventSelector_Key{
+	if r.eventRequestProvider != nil {
+		ret := r.eventRequestProvider()
+		r.eventSelector = &commonv1.EventSelector{Arg: &commonv1.EventSelector_Key{
 			Key: ret.Event.Key,
 		}}
 		return ret

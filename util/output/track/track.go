@@ -49,7 +49,7 @@ func NewTrackOutput(opts ...Option) Output {
 	case output.FormatCSV:
 		return &trackOutput{outputter: newTrackCsv(cfg)}
 	case output.FormatJSON:
-		return &trackOutput{outputter: &trackJson{config: cfg}}
+		return &trackOutput{outputter: &trackJSON{config: cfg}}
 	}
 	return &trackOutput{outputter: &trackEmpty{config: cfg}}
 }

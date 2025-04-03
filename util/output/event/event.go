@@ -49,7 +49,7 @@ func NewEventOutput(eventData *eventv1.GetEventResponse, opts ...Option) EventOu
 	case output.FormatText:
 		return &eventOutput{config: ret, outputter: &eventText{}}
 	case output.FormatJSON:
-		return &eventOutput{config: ret, outputter: &eventJson{}}
+		return &eventOutput{config: ret, outputter: &eventJSON{}}
 	}
 	return &eventOutput{config: ret, outputter: &eventEmpty{}}
 }
