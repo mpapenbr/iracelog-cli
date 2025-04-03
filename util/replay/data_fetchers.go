@@ -16,7 +16,7 @@ import (
 func initDriverDataFetcher(
 	service racestatev1grpc.RaceStateServiceClient,
 	logger *log.Logger,
-	eventId uint32,
+	eventID uint32,
 	lastTS time.Time,
 	limit int,
 ) myFetcher[racestatev1.PublishDriverDataRequest] {
@@ -26,7 +26,7 @@ func initDriverDataFetcher(
 		loader: func(startTs time.Time) ([]*racestatev1.PublishDriverDataRequest, time.Time, error) {
 			if resp, err := service.GetDriverData(context.Background(),
 				&racestatev1.GetDriverDataRequest{
-					Event: buildEventSelector(eventId),
+					Event: buildEventSelector(eventID),
 					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
@@ -49,7 +49,7 @@ func initDriverDataFetcher(
 func initStateDataFetcher(
 	service racestatev1grpc.RaceStateServiceClient,
 	logger *log.Logger,
-	eventId uint32,
+	eventID uint32,
 	lastTS time.Time,
 	limit int,
 ) myFetcher[racestatev1.PublishStateRequest] {
@@ -58,7 +58,7 @@ func initStateDataFetcher(
 		loader: func(startTs time.Time) ([]*racestatev1.PublishStateRequest, time.Time, error) {
 			if resp, err := service.GetStates(context.Background(),
 				&racestatev1.GetStatesRequest{
-					Event: buildEventSelector(eventId),
+					Event: buildEventSelector(eventID),
 					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
@@ -82,7 +82,7 @@ func initStateDataFetcher(
 func initSpeedmapDataFetcher(
 	service racestatev1grpc.RaceStateServiceClient,
 	logger *log.Logger,
-	eventId uint32,
+	eventID uint32,
 	lastTS time.Time,
 	limit int,
 ) myFetcher[racestatev1.PublishSpeedmapRequest] {
@@ -91,7 +91,7 @@ func initSpeedmapDataFetcher(
 		loader: func(startTs time.Time) ([]*racestatev1.PublishSpeedmapRequest, time.Time, error) {
 			if resp, err := service.GetSpeedmaps(context.Background(),
 				&racestatev1.GetSpeedmapsRequest{
-					Event: buildEventSelector(eventId),
+					Event: buildEventSelector(eventID),
 					Start: buildStartSelector(startTs),
 					Num:   int32(limit),
 				}); err == nil {
@@ -111,8 +111,8 @@ func initSpeedmapDataFetcher(
 	return df
 }
 
-func buildEventSelector(eventId uint32) *commonv1.EventSelector {
-	return &commonv1.EventSelector{Arg: &commonv1.EventSelector_Id{Id: int32(eventId)}}
+func buildEventSelector(eventID uint32) *commonv1.EventSelector {
+	return &commonv1.EventSelector{Arg: &commonv1.EventSelector_Id{Id: int32(eventID)}}
 }
 
 func buildStartSelector(t time.Time) *commonv1.StartSelector {
@@ -126,7 +126,7 @@ type myFetcher[E any] interface {
 }
 
 type (
-	myLoaderFunc[E any] func(startTs time.Time) ([]*E, time.Time, error)
+	myLoaderFunc[E any] func(startTS time.Time) ([]*E, time.Time, error)
 	mapToSessionType    func(sessionNum uint32) commonv1.SessionType
 )
 

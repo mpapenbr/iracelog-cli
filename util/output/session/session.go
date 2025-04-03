@@ -49,7 +49,7 @@ func NewSessionOutput(opts ...Option) Output {
 	case output.FormatCSV:
 		return &sessionOutput{outputter: newSessionCsv(cfg)}
 	case output.FormatJSON:
-		return &sessionOutput{outputter: &sessionJson{config: cfg}}
+		return &sessionOutput{outputter: &sessionJSON{config: cfg}}
 	}
 	return &sessionOutput{outputter: &sessionEmpty{config: cfg}}
 }

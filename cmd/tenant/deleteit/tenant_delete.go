@@ -26,7 +26,7 @@ func NewTenantDeleteCmd() *cobra.Command {
 			deleteTenant(cmd.Context())
 		},
 	}
-	cmd.Flags().StringVar(&externalId,
+	cmd.Flags().StringVar(&externalID,
 		"external-id",
 		"",
 		"external id of the tenant")
@@ -40,7 +40,7 @@ func NewTenantDeleteCmd() *cobra.Command {
 }
 
 var (
-	externalId string
+	externalID string
 	name       string
 )
 
@@ -48,8 +48,8 @@ type (
 	tenantParam struct{}
 )
 
-func (t tenantParam) ExternalId() string {
-	return externalId
+func (t tenantParam) ExternalID() string {
+	return externalID
 }
 
 func (t tenantParam) Name() string {
@@ -71,7 +71,7 @@ func deleteTenant(ctx context.Context) {
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
-			metadata.Pairs(config.API_TOKEN_HEADER, config.DefaultCliArgs().Token)),
+			metadata.Pairs(config.APITokenHeader, config.DefaultCliArgs().Token)),
 		10*time.Second)
 	defer cancel()
 	_, err = c.DeleteTenant(reqCtx, &req)

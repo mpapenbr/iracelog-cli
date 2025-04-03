@@ -49,7 +49,7 @@ func NewTenantOutput(opts ...Option) Output {
 	case output.FormatCSV:
 		return &tenantOutput{outputter: newTenantCsv(cfg)}
 	case output.FormatJSON:
-		return &tenantOutput{outputter: &tenantJson{config: cfg}}
+		return &tenantOutput{outputter: &tenantJSON{config: cfg}}
 	case output.FormatText:
 		return &tenantOutput{outputter: &tenantText{config: cfg}}
 	}

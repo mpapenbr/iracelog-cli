@@ -49,7 +49,7 @@ func NewCarOutput(opts ...Option) Output {
 	case output.FormatCSV:
 		return &carOutput{outputter: newCarCsv(cfg)}
 	case output.FormatJSON:
-		return &carOutput{outputter: &carJson{config: cfg}}
+		return &carOutput{outputter: &carJSON{config: cfg}}
 	}
 	return &carOutput{outputter: &carEmpty{config: cfg}}
 }

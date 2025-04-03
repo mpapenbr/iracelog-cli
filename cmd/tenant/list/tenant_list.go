@@ -51,7 +51,7 @@ func listTenants(ctx context.Context) {
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
-			metadata.Pairs(config.API_TOKEN_HEADER, config.DefaultCliArgs().Token)),
+			metadata.Pairs(config.APITokenHeader, config.DefaultCliArgs().Token)),
 		10*time.Second)
 	defer cancel()
 	r, err := c.GetTenants(reqCtx, &req)

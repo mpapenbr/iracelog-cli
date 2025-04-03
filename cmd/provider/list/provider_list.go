@@ -21,7 +21,7 @@ func NewProviderListCmd() *cobra.Command {
 			return listEvents(cmd.Context())
 		},
 	}
-	cmd.Flags().StringVar(&externalId,
+	cmd.Flags().StringVar(&externalID,
 		"tenant-external-id",
 		"",
 		"external id of the tenant")
@@ -33,7 +33,7 @@ func NewProviderListCmd() *cobra.Command {
 }
 
 var (
-	externalId string
+	externalID string
 	name       string
 )
 
@@ -41,8 +41,8 @@ type (
 	tenantParam struct{}
 )
 
-func (t tenantParam) ExternalId() string {
-	return externalId
+func (t tenantParam) ExternalID() string {
+	return externalID
 }
 
 func (t tenantParam) Name() string {

@@ -13,7 +13,7 @@ type (
 		SessionTime() time.Duration
 		RecordStamp() string
 		SessionNum() int
-		Id() int
+		ID() int
 	}
 )
 
@@ -75,10 +75,10 @@ func ResolveStartSelector2(s StartSelParam) (
 		}, nil
 	}
 
-	if s.Id() > -1 {
+	if s.ID() > -1 {
 		return &commonv1.StartSelector{
 			Arg: &commonv1.StartSelector_Id{
-				Id: uint32(s.Id()),
+				Id: uint32(s.ID()),
 			},
 		}, nil
 	}

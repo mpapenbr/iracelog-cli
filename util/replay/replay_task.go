@@ -20,7 +20,7 @@ import (
 )
 
 type ReplayDataProvider interface {
-	ProvideEventData(eventId uint32) *providerv1.RegisterEventRequest
+	ProvideEventData(eventID uint32) *providerv1.RegisterEventRequest
 	NextDriverData() *racestatev1.PublishDriverDataRequest
 	NextStateData() *racestatev1.PublishStateRequest
 	NextSpeedmapData() *racestatev1.PublishSpeedmapRequest
@@ -162,7 +162,7 @@ func (p *peekSpeedmapData) publish() error {
 	return nil
 }
 
-func (r *ReplayTask) Replay(eventId uint32) error {
+func (r *ReplayTask) Replay(eventID uint32) error {
 	r.providerService = providerv1grpc.NewProviderServiceClient(r.dest)
 	r.raceStateService = racestatev1grpc.NewRaceStateServiceClient(r.dest)
 	r.localCtx, r.localCancel = context.WithCancel(r.ctx)
@@ -177,13 +177,13 @@ func (r *ReplayTask) Replay(eventId uint32) error {
 	r.driverDataChan = make(chan *racestatev1.PublishDriverDataRequest)
 
 	var err error
-	registerReq := r.dataProvider.ProvideEventData(eventId)
+	registerReq := r.dataProvider.ProvideEventData(eventID)
 
 	if r.event, err = r.registerEvent(registerReq); err != nil {
 		return err
 	}
 	r.myLog.Info("replaying event",
-		log.Uint32("id", eventId),
+		log.Uint32("id", eventID),
 		log.String("key", r.event.Key),
 		log.String("event", r.event.Name),
 	)
@@ -249,7 +249,7 @@ func (r *ReplayTask) sendData() {
 		}
 	}
 	pData = init
-	lastTs := time.Time{}
+	lastTS := time.Time{}
 	lastSessionType := commonv1.SessionType_SESSION_TYPE_PRACTICE
 
 	for {
@@ -259,32 +259,32 @@ func (r *ReplayTask) sendData() {
 		var currentIdx int
 
 		// create a max time from  (don't use time.Unix(1<<63-1), that's not what we want)
-		nextTs := time.Unix(0, 0).Add(1<<63 - 1)
+		nextTS := time.Unix(0, 0).Add(1<<63 - 1)
 
 		for i, p := range pData {
-			if p.stamp().ts.Before(nextTs) {
-				nextTs = p.stamp().ts
+			if p.stamp().ts.Before(nextTS) {
+				nextTS = p.stamp().ts
 				selector = p.provider()
 				current = pData[i]
 				currentIdx = i
 			}
 		}
-		r.computeFastForwardStop(nextTs)
+		r.computeFastForwardStop(nextTS)
 
-		if !lastTs.IsZero() {
+		if !lastTS.IsZero() {
 			// use lastSessionType because waitTime should only be calculated
 			// if we are within a race session
-			wait := r.calcWaitTime(nextTs, lastTs, lastSessionType)
+			wait := r.calcWaitTime(nextTS, lastTS, lastSessionType)
 			if wait > 0 {
 				r.myLog.Debug("Sleeping",
-					log.Time("time", nextTs),
+					log.Time("time", nextTS),
 					log.Duration("delta", delta),
 					log.Duration("wait", wait),
 				)
 				time.Sleep(wait)
 			}
 		}
-		lastTs = nextTs
+		lastTS = nextTS
 		if current == nil {
 			r.myLog.Error("No provider found")
 			return
@@ -324,17 +324,17 @@ func (r *ReplayTask) computeFastForwardStop(cur time.Time) {
 }
 
 func (r *ReplayTask) calcWaitTime(
-	nextTs, lastTs time.Time,
+	nextTS, lastTS time.Time,
 	sType commonv1.SessionType,
 ) time.Duration {
 	// we don't want to wait for messages prior to race start if ffPreRace is set
 	if r.ffPreRace && sType != commonv1.SessionType_SESSION_TYPE_RACE {
 		return 0
 	}
-	delta := nextTs.Sub(lastTs)
+	delta := nextTS.Sub(lastTS)
 
 	// handle fast forward
-	if nextTs.Before(r.ffStopTime) {
+	if nextTS.Before(r.ffStopTime) {
 		return 0
 	}
 	if r.speed > 0 {

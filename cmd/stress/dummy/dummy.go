@@ -34,11 +34,11 @@ func experimental(ctx context.Context) {
 		myStress.WithLogging(logger),
 		//nolint:gosec // ok here
 		myStress.WithJobHandler(func(j *myStress.Job) error {
-			j.Logger.Debug("about to sleep", log.Int("jobId", j.Id))
+			j.Logger.Debug("about to sleep", log.Int("jobId", j.ID))
 			waitTime := 100 + rand.Intn(100)
 			time.Sleep(time.Duration(waitTime) * time.Millisecond)
 			j.Logger.Debug("done sleeping",
-				log.Int("jobId", j.Id),
+				log.Int("jobId", j.ID),
 				log.Time("myTime", time.Now()))
 			if rand.Intn(5) == 0 {
 				return errors.New("simulated error")

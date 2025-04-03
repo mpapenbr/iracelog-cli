@@ -23,7 +23,7 @@ func (s *tenantText) line(data *tenantv1.Tenant) {
 	for _, attr := range s.config.attrs {
 		var valueString string
 		switch attr {
-		case TenantExternalId:
+		case TenantExternalID:
 			valueString = data.GetExternalId().GetId()
 		case TenantName:
 			valueString = data.GetName()

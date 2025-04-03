@@ -7,15 +7,15 @@ import (
 	racestatev1 "buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go/iracelog/racestate/v1"
 )
 
-type carJson struct {
+type carJSON struct {
 	config *OutputConfig
 }
 
-func (c *carJson) header() {
+func (c *carJSON) header() {
 	// JSON output does not require a header
 }
 
-func (c *carJson) line(session *racestatev1.Session, car *racestatev1.Car) {
+func (c *carJSON) line(session *racestatev1.Session, car *racestatev1.Car) {
 	record := make(map[string]interface{})
 	for _, attr := range c.config.attrs {
 		record[attr.String()] = getCarAttrValue(session, car, attr)
@@ -28,6 +28,6 @@ func (c *carJson) line(session *racestatev1.Session, car *racestatev1.Car) {
 	c.config.outputFunc(string(jsonData))
 }
 
-func (c *carJson) flush() {
+func (c *carJSON) flush() {
 	// JSON output does not require flushing
 }

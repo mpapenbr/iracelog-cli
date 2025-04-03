@@ -72,7 +72,7 @@ func createTenant(ctx context.Context, name string) {
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
-			metadata.Pairs(config.API_TOKEN_HEADER, config.DefaultCliArgs().Token)),
+			metadata.Pairs(config.APITokenHeader, config.DefaultCliArgs().Token)),
 		10*time.Second)
 	defer cancel()
 	r, err := c.CreateTenant(reqCtx, &req)

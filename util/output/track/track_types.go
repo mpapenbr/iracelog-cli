@@ -10,7 +10,7 @@ import (
 
 const (
 	TrackUndefined TrackAttr = iota
-	TrackId
+	TrackID
 	TrackName
 	TrackShortName
 	TrackConfig
@@ -28,7 +28,7 @@ type (
 
 func SupportedTrackAttrs() []TrackAttr {
 	return []TrackAttr{
-		TrackId,
+		TrackID,
 		TrackName,
 		TrackShortName,
 		TrackConfig,
@@ -50,7 +50,7 @@ func ParseTrackAttr(text string) (TrackAttr, error) {
 //nolint:exhaustive,cyclop // by design
 func (f TrackAttr) String() string {
 	switch f {
-	case TrackId:
+	case TrackID:
 		return "id"
 	case TrackName:
 		return "name"
@@ -94,7 +94,7 @@ func (f *TrackAttr) UnmarshalText(text []byte) error {
 func (f *TrackAttr) unmarshalText(text []byte) bool {
 	switch strings.ToLower(string(text)) {
 	case "id":
-		*f = TrackId
+		*f = TrackID
 	case "name":
 		*f = TrackName
 	case "shortname":

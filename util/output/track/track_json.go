@@ -7,22 +7,22 @@ import (
 )
 
 type (
-	trackJson struct {
+	trackJSON struct {
 		config *OutputConfig
 	}
 )
 
-func (s *trackJson) header() {
+func (s *trackJSON) header() {
 	// empty by design - not needed for json
 }
 
 //nolint:cyclop // by design
-func (s *trackJson) line(data *trackv1.Track) {
+func (s *trackJSON) line(data *trackv1.Track) {
 	out := make(map[string]interface{}, 0)
 	for _, attr := range s.config.attrs {
 		//nolint:exhaustive // by design
 		switch attr {
-		case TrackId:
+		case TrackID:
 			out[attr.String()] = data.Id
 		case TrackName:
 			out[attr.String()] = data.Name
@@ -52,6 +52,6 @@ func (s *trackJson) line(data *trackv1.Track) {
 	}
 }
 
-func (s *trackJson) flush() {
+func (s *trackJSON) flush() {
 	// empty by design - not needed for json
 }

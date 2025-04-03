@@ -145,10 +145,10 @@ func webclient(ctx context.Context) {
 			if wcErr := wc.Start(sel); wcErr == nil {
 				stats := wc.GetStats()
 				statsLogger.Info("webclient finished",
-					log.Int("jobId", j.Id),
-					log.Int("workerId", j.WorkerId),
+					log.Int("jobId", j.ID),
+					log.Int("workerId", j.WorkerID),
 					log.Any("stats", stats))
-				summary.addStats(j.WorkerId, &stats)
+				summary.addStats(j.WorkerID, &stats)
 			} else {
 				j.Logger.Error("webclient failed", log.ErrorField(wcErr))
 			}
@@ -219,10 +219,10 @@ func (w *webclientStats) output(numWorkers int) {
 	}
 }
 
-func (w *webclientStats) addStats(workerId int, s *simulate.Stats) {
+func (w *webclientStats) addStats(workerID int, s *simulate.Stats) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	item := &w.stats[workerId]
+	item := &w.stats[workerID]
 	item.Analysis.Add(&s.Analysis)
 	item.Driver.Add(&s.Driver)
 	item.Speedmap.Add(&s.Speedmap)

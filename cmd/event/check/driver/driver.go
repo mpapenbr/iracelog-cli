@@ -61,7 +61,7 @@ func checkDriver(ctx context.Context, arg string) {
 	}
 
 	c := racestatev1grpc.NewRaceStateServiceClient(conn)
-	var prevTs *timestamppb.Timestamp = nil
+	var prevTS *timestamppb.Timestamp = nil
 
 	var resp grpc.ServerStreamingClient[racestatev1.GetDriverDataStreamResponse]
 
@@ -82,15 +82,15 @@ func checkDriver(ctx context.Context, arg string) {
 			logger.Error("error fetching driver data", log.ErrorField(err))
 			return
 		}
-		if prevTs != nil {
-			delta := s.DriverData.Timestamp.AsTime().Sub(prevTs.AsTime())
+		if prevTS != nil {
+			delta := s.DriverData.Timestamp.AsTime().Sub(prevTS.AsTime())
 			if delta > options.GapThreshold {
 				logger.Info("Gap detected.",
-					log.Time("prev", prevTs.AsTime()),
+					log.Time("prev", prevTS.AsTime()),
 					log.Time("this", s.DriverData.Timestamp.AsTime()),
 					log.Duration("delta", delta))
 			}
 		}
-		prevTs = s.DriverData.Timestamp
+		prevTS = s.DriverData.Timestamp
 	}
 }

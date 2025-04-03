@@ -7,17 +7,17 @@ import (
 )
 
 type (
-	sessionJson struct {
+	sessionJSON struct {
 		config *OutputConfig
 	}
 )
 
-func (s *sessionJson) header() {
+func (s *sessionJSON) header() {
 	// empty by design - not needed for json
 }
 
 //nolint:cyclop // by design
-func (s *sessionJson) line(data *racestatev1.PublishStateRequest) {
+func (s *sessionJSON) line(data *racestatev1.PublishStateRequest) {
 	out := make(map[string]interface{}, 0)
 	for _, attr := range s.config.attrs {
 		switch attr {
@@ -54,6 +54,6 @@ func (s *sessionJson) line(data *racestatev1.PublishStateRequest) {
 	}
 }
 
-func (s *sessionJson) flush() {
+func (s *sessionJSON) flush() {
 	// empty by design - not needed for json
 }

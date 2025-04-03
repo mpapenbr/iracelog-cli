@@ -21,12 +21,12 @@ var (
 	newname        string
 	apiKey         string
 	apiKeyLen      uint
-	generateApiKey bool
+	generateAPIKey bool
 	attrs          []string
 	format         string
 	enableActive   bool
 	disableActive  bool
-	externalId     string
+	externalID     string
 )
 
 func NewTenantEditCmd() *cobra.Command {
@@ -46,7 +46,7 @@ func NewTenantEditCmd() *cobra.Command {
 		"api-key", "", "assign api key to tenant")
 	cmd.Flags().UintVar(&apiKeyLen,
 		"api-key-len", 32, "length of generated api key")
-	cmd.Flags().BoolVar(&generateApiKey,
+	cmd.Flags().BoolVar(&generateAPIKey,
 		"generate-api-key", false, "generate a new api key")
 	cmd.Flags().BoolVar(&enableActive,
 		"enable-active", false, "set active state of tenant to true")
@@ -56,7 +56,7 @@ func NewTenantEditCmd() *cobra.Command {
 		"tenant attributes to display")
 	cmd.Flags().StringVar(&format, "format", "text",
 		"output format (text, json,csv)")
-	cmd.Flags().StringVar(&externalId,
+	cmd.Flags().StringVar(&externalID,
 		"external-id",
 		"",
 		"external id of the tenant")
@@ -74,8 +74,8 @@ type (
 	tenantParam struct{}
 )
 
-func (t tenantParam) ExternalId() string {
-	return externalId
+func (t tenantParam) ExternalID() string {
+	return externalID
 }
 
 func (t tenantParam) Name() string {
@@ -95,7 +95,7 @@ func editTenant(ctx context.Context) {
 	c := tenantv1grpc.NewTenantServiceClient(conn)
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
-			metadata.Pairs(config.API_TOKEN_HEADER, config.DefaultCliArgs().Token)),
+			metadata.Pairs(config.APITokenHeader, config.DefaultCliArgs().Token)),
 		10*time.Second)
 	defer cancel()
 
@@ -113,7 +113,7 @@ func editTenant(ctx context.Context) {
 	if newname != "" {
 		req.Name = newname
 	}
-	if generateApiKey {
+	if generateAPIKey {
 		if apiKey, err = util.GenerateRandomString(apiKeyLen); err != nil {
 			logger.Fatal("could not generate random string", log.ErrorField(err))
 		}

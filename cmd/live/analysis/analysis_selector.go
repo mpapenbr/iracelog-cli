@@ -107,7 +107,10 @@ func resolveAnalysisSelector() *livedatav1.AnalysisSelector {
 	for _, comp := range config.DefaultCliArgs().Components {
 		switch comp {
 		case "caroccupancies":
-			selComps = append(selComps, livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_OCCUPANCIES)
+			selComps = append(
+				selComps,
+				livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_OCCUPANCIES,
+			)
 		case "carpits":
 			selComps = append(selComps, livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_PITS)
 		case "carstints":
@@ -115,7 +118,10 @@ func resolveAnalysisSelector() *livedatav1.AnalysisSelector {
 		case "carlaps":
 			selComps = append(selComps, livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_LAPS)
 		case "carcomputestates":
-			selComps = append(selComps, livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_COMPUTE_STATES)
+			selComps = append(
+				selComps,
+				livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_CAR_COMPUTE_STATES,
+			)
 		case "raceorder":
 			selComps = append(selComps, livedatav1.AnalysisComponent_ANALYSIS_COMPONENT_RACE_ORDER)
 		case "racegraph":

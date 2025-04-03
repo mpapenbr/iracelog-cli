@@ -33,7 +33,7 @@ var (
 	cfg              *replay.Config
 	includeEvents    []uint
 	excludeEvents    []uint
-	useJobIdKey      bool
+	useJobIDKey      bool
 )
 
 func init() {
@@ -58,7 +58,7 @@ func NewReplayLoopCmd() *cobra.Command {
 		"include-events", []uint{}, "include events by id")
 	cmd.Flags().UintSliceVar(&excludeEvents,
 		"exclude-events", []uint{}, "exclude events by id")
-	cmd.Flags().BoolVar(&useJobIdKey,
+	cmd.Flags().BoolVar(&useJobIDKey,
 		"use-jobid-key", true,
 		"use job id for event key")
 	cmd.Flags().DurationVar(&myStress.Pause,
@@ -221,9 +221,9 @@ func replayLoop(ctx context.Context) {
 					}
 					//nolint:errcheck // ok here
 					demoEvent := proto.Clone(e).(*eventv1.Event)
-					if useJobIdKey {
-						demoEvent.Key = fmt.Sprintf("demo-worker-%d", j.Id)
-						e.Key = fmt.Sprintf("demo-worker-%d", j.Id)
+					if useJobIDKey {
+						demoEvent.Key = fmt.Sprintf("demo-worker-%d", j.ID)
+						e.Key = fmt.Sprintf("demo-worker-%d", j.ID)
 					} else {
 						demoEvent.Key = uuid.New().String()
 					}

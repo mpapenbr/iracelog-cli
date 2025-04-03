@@ -10,7 +10,7 @@ import (
 
 const (
 	TenantUndefined TenantAttr = iota
-	TenantExternalId
+	TenantExternalID
 	TenantName
 	TenantIsActive
 )
@@ -27,7 +27,7 @@ func ParseTenantAttr(text string) (TenantAttr, error) {
 
 func SupportedTenantAttrs() []TenantAttr {
 	return []TenantAttr{
-		TenantExternalId,
+		TenantExternalID,
 		TenantName,
 		TenantIsActive,
 	}
@@ -36,7 +36,7 @@ func SupportedTenantAttrs() []TenantAttr {
 //nolint:exhaustive,cyclop // by design
 func (f TenantAttr) String() string {
 	switch f {
-	case TenantExternalId:
+	case TenantExternalID:
 		return "externalId"
 	case TenantName:
 		return "name"
@@ -65,7 +65,7 @@ func (f *TenantAttr) UnmarshalText(text []byte) error {
 func (f *TenantAttr) unmarshalText(text []byte) bool {
 	switch strings.ToLower(string(text)) {
 	case "externalid":
-		*f = TenantExternalId
+		*f = TenantExternalID
 	case "name":
 		*f = TenantName
 	case "isactive":
