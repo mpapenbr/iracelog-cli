@@ -11,12 +11,12 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.6-20250220144045-1ae052574bdc.1
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.6-20250518161423-c8b60b159155.1
 	github.com/google/uuid v1.6.0
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20250220144045-1ae052574bdc.2
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20250518161423-c8b60b159155.2
 	github.com/dustin/go-humanize v1.0.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
