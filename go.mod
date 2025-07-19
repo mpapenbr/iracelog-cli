@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.73.0
