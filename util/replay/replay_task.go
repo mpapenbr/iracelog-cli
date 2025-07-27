@@ -197,6 +197,7 @@ func (r *ReplayTask) Replay(eventID uint32) error {
 
 	r.myLog.Debug("Waiting for tasks to finish")
 	r.wg.Wait()
+
 	r.myLog.Debug("About to unregister event")
 	err = r.unregisterEvent()
 	r.myLog.Debug("Event unregistered", log.String("key", r.event.Key))
@@ -301,9 +302,16 @@ func (r *ReplayTask) sendData() {
 					return
 				}
 			}
-			r.myLog.Error("Error publishing data", log.ErrorField(err))
+			r.myLog.Error("Error publishing data",
+				log.String("provider", string(selector)),
+				log.String("event", r.event.Key),
+				log.ErrorField(err))
 			r.localCancel()
 			return
+		} else {
+			r.myLog.Debug("Published data",
+				log.String("provider", string(selector)),
+			)
 		}
 		if !current.refill() {
 			r.myLog.Debug("exhausted", log.String("provider", string(selector)))
