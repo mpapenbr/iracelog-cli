@@ -12,6 +12,7 @@ import (
 
 	"github.com/mpapenbr/iracelog-cli/config"
 	"github.com/mpapenbr/iracelog-cli/log"
+	"github.com/mpapenbr/iracelog-cli/util/cookie"
 )
 
 type (
@@ -89,9 +90,12 @@ func NewClient(addr string, opts ...Option) (*grpc.ClientConn, error) {
 	for _, opt := range opts {
 		opt(param)
 	}
+
 	if !param.tlsEnabled {
 		log.Debug("TLS disabled")
 		return grpc.NewClient(addr,
+			grpc.WithUnaryInterceptor(
+				cookie.CookieInterceptor(cookie.NewJar(), addr)),
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	log.Debug("TLS enabled")
@@ -123,6 +127,8 @@ func NewClient(addr string, opts ...Option) (*grpc.ClientConn, error) {
 	}
 
 	return grpc.NewClient(addr,
+		grpc.WithUnaryInterceptor(
+			cookie.CookieInterceptor(cookie.NewJar(), addr)),
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }
 
