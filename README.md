@@ -8,7 +8,7 @@
 [![Semantic Versioning](https://img.shields.io/badge/versioning-semantic-black?style=for-the-badge&logo=semver)][github-releases]
 [![Pre-Commit Enabled](https://img.shields.io/badge/Pre--Commit-Enabled-blue?style=for-the-badge&logo=pre-commit)][precommit-config]
 [![License](https://img.shields.io/github/license/mpapenbr/iracelog-cli?color=red&style=for-the-badge)][project-license]
-[![Go v1.24](https://img.shields.io/badge/Go-%20v1.24-black?style=for-the-badge&logo=go)][gomod-file]
+[![Go v1.25](https://img.shields.io/badge/Go-%20v1.25-black?style=for-the-badge&logo=go)][gomod-file]
 
 Command line interface for iRacelog
 
