@@ -1,7 +1,7 @@
-buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20250705185745-385bdc10baf0.2 h1:XrHNxnI5kVEfr4MxGy3maljr2qXmmQkg93vddgqxmDY=
-buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20250705185745-385bdc10baf0.2/go.mod h1:n0O9L+AgWW5DoKRaFA46SVggEkp+q4CiovlMrHfqbf4=
-buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.10-20250705185745-385bdc10baf0.1 h1:nwo7Fng89I75ZIzlRGxwFjYUmyMn1ziZfjSGMYfLOM4=
-buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.10-20250705185745-385bdc10baf0.1/go.mod h1:t+bjuvMflfVDmRFC5bAAeQ5Kw2WpztlGHJEOAIbKtvA=
+buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20251019125030-8cb75f92a51d.2 h1:f/2LWedTnKSL4P4sralr4tR390QWevG9IQPcXNL3s/s=
+buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.5.1-20251019125030-8cb75f92a51d.2/go.mod h1:9zo7ZBgMDJAcEIQN8CKr33N36gH/dTk7SBMN/mabUuQ=
+buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.10-20251019125030-8cb75f92a51d.1 h1:Eh1oZ/EnJiW8jrWSJMUZcTYBK0ZhqVqetYd+uFfqT6o=
+buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.10-20251019125030-8cb75f92a51d.1/go.mod h1:t+bjuvMflfVDmRFC5bAAeQ5Kw2WpztlGHJEOAIbKtvA=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
