@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.6.0-20251019125030-8cb75f92a51d.1
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.6.1-20251019125030-8cb75f92a51d.1
 	github.com/dustin/go-humanize v1.0.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
