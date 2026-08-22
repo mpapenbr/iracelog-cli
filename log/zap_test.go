@@ -3,6 +3,8 @@ package log
 import "testing"
 
 // verifies the helper function the get the best match logger config
+//
+//nolint:goconst // by design
 func Test_findBestMatch(t *testing.T) {
 	type args struct {
 		stringsList []string

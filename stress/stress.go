@@ -294,7 +294,7 @@ func (p *JobProcessor) addJobs(numJobs int) {
 	}
 }
 
-//nolint:gocognit // false positive
+//nolint:gocognit,funlen // false positive
 func (p *JobProcessor) resultCollector(ctx context.Context) {
 	collected := 0
 	for {
@@ -305,7 +305,8 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 
 		case result := <-p.results:
 			collected++
-			p.pLogger.Debug("Got result from job",
+			p.pLogger.Debug(
+				"Got result from job",
 				log.Int("jobId", result.Request.ID),
 				log.Int("worker", result.Request.WorkerID),
 				log.Int("collected", collected),
@@ -334,7 +335,10 @@ func (p *JobProcessor) resultCollector(ctx context.Context) {
 						p.queue <- &Job{ID: p.nextJobID}
 						p.nextJobID++
 					} else {
-						p.pLogger.Debug("NOT issuing next job, time is up", log.Int("jobId", p.nextJobID))
+						p.pLogger.Debug(
+							"NOT issuing next job, time is up",
+							log.Int("jobId", p.nextJobID),
+						)
 					}
 				}()
 			}
@@ -391,7 +395,8 @@ func (p *JobProcessor) logWorkerProgress(ticker *time.Ticker, ctx context.Contex
 
 			//nolint:gocritic // false positive
 			for _, item := range p.workerStats {
-				item.Logger.Info("progress",
+				item.Logger.Info(
+					"progress",
 					log.Int("jobsDone", item.JobsDone),
 					log.Duration("timeUsed", item.TimeUsed),
 					log.Int("errors", len(item.Errors)),

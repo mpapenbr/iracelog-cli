@@ -1,0 +1,14 @@
+{
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:3": {
+      "version": "3.1.0",
+      "resolved": "ghcr.io/devcontainers/features/docker-in-docker@sha256:62e04ec83d944da4fd2830f68a677d1f5466c0654aea1e4baa30232d16029ac1",
+      "integrity": "sha256:62e04ec83d944da4fd2830f68a677d1f5466c0654aea1e4baa30232d16029ac1"
+    },
+    "ghcr.io/jungaretti/features/ripgrep:1": {
+      "version": "1.0.1",
+      "resolved": "ghcr.io/jungaretti/features/ripgrep@sha256:c0922b6f4a9184080c8435b6ef25983dee6c734733f0a749d852ad0d33de2253",
+      "integrity": "sha256:c0922b6f4a9184080c8435b6ef25983dee6c734733f0a749d852ad0d33de2253"
+    }
+  }
+}
