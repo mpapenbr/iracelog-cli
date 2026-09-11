@@ -96,7 +96,8 @@ func editTenant(ctx context.Context) {
 	reqCtx, cancel := context.WithTimeout(
 		metadata.NewOutgoingContext(context.Background(),
 			metadata.Pairs(config.APITokenHeader, config.DefaultCliArgs().Token)),
-		10*time.Second)
+		10*time.Second,
+	)
 	defer cancel()
 
 	// request tenant data

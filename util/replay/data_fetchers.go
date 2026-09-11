@@ -138,7 +138,6 @@ type commonFetcher[E any] struct {
 	resolveSessionType mapToSessionType
 }
 
-//nolint:unused // false positive
 func (f *commonFetcher[E]) next() *E {
 	if len(f.buffer) == 0 {
 		f.fetch()
@@ -152,7 +151,6 @@ func (f *commonFetcher[E]) next() *E {
 	return ret
 }
 
-//nolint:unused // false positive
 func (f *commonFetcher[E]) fetch() {
 	f.buffer, f.lastTS, _ = f.loader(f.lastTS)
 }

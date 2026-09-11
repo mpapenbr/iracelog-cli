@@ -63,7 +63,8 @@ func replayEvent(arg string) {
 	log.Info("connect source server", log.String("addr", cfg.SourceAddr))
 	source, err := util.NewClient(
 		cfg.SourceAddr,
-		util.WithTLSEnabled(!cfg.SourceInsecure))
+		util.WithTLSEnabled(!cfg.SourceInsecure),
+	)
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return
@@ -73,7 +74,8 @@ func replayEvent(arg string) {
 	log.Info("connect dest server", log.String("addr", config.DefaultCliArgs().Addr))
 	dest, err := util.NewClient(
 		config.DefaultCliArgs().Addr,
-		util.WithCliArgs(config.DefaultCliArgs()))
+		util.WithCliArgs(config.DefaultCliArgs()),
+	)
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return

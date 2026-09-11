@@ -25,13 +25,15 @@ func SetupLogger(cfg *config.CliArgs) *log.Logger {
 			logFile,
 			ParseLogLevel(cfg.LogLevel, log.InfoLevel),
 			log.WithCaller(true),
-			log.AddCallerSkip(1))
+			log.AddCallerSkip(1),
+		)
 	default:
 		logger = log.DevLogger(
 			logFile,
 			ParseLogLevel(cfg.LogLevel, log.DebugLevel),
 			log.WithCaller(true),
-			log.AddCallerSkip(1))
+			log.AddCallerSkip(1),
+		)
 	}
 
 	log.ResetDefault(logger)

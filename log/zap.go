@@ -260,7 +260,8 @@ func NewWithConfig(cfg *Config, level string) *Logger {
 		}
 		lt = zap.New(zapfilter.NewFilteringCore(
 			myCore,
-			zapfilter.MustParseRules(filters)),
+			zapfilter.MustParseRules(filters),
+		),
 		)
 	}
 

@@ -53,7 +53,8 @@ func checkTires(ctx context.Context, arg string) {
 	var startSel *commonv1.StartSelector
 	if startSel, err = util.ResolveStartSelector(
 		options.SessionTime,
-		options.RecordStamp); err != nil {
+		options.RecordStamp,
+	); err != nil {
 		logger.Error("could not resolve start selector",
 			log.ErrorField(err),
 			log.Duration("session-time", options.SessionTime),

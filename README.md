@@ -8,7 +8,7 @@
 [![Semantic Versioning](https://img.shields.io/badge/versioning-semantic-black?style=for-the-badge&logo=semver)][github-releases]
 [![Pre-Commit Enabled](https://img.shields.io/badge/Pre--Commit-Enabled-blue?style=for-the-badge&logo=pre-commit)][precommit-config]
 [![License](https://img.shields.io/github/license/mpapenbr/iracelog-cli?color=red&style=for-the-badge)][project-license]
-[![Go v1.25](https://img.shields.io/badge/Go-%20v1.25-black?style=for-the-badge&logo=go)][gomod-file]
+[![Go v1.27](https://img.shields.io/badge/Go-%20v1.27-black?style=for-the-badge&logo=go)][gomod-file]
 
 Command line interface for iRacelog
 
@@ -256,9 +256,9 @@ requests are merged.
 
 Labels allowed;
 
--   `major`: Affects the `<major>` version number for semantic versioning
--   `minor`, `enhancement`, `update`, `feature`: Affects the `<minor>` version number for semantic versioning
--   all other labels affect the `<patch>` version number
+- `major`: Affects the `<major>` version number for semantic versioning
+- `minor`, `enhancement`, `update`, `feature`: Affects the `<minor>` version number for semantic versioning
+- all other labels affect the `<patch>` version number
 
 Whenever a pull request with one of these labels is merged to the `master` branch,
 the corresponding version number will be bumped by one digit!

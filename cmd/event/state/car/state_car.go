@@ -62,7 +62,8 @@ func showCarData(ctx context.Context, arg string) {
 
 	var startSel *commonv1.StartSelector
 	if startSel, err = util.ResolveStartSelector2(
-		options.BuildStartSelParam()); err != nil {
+		options.BuildStartSelParam(),
+	); err != nil {
 		logger.Error("could not resolve start selector",
 			log.ErrorField(err),
 			log.Duration("session-time", options.SessionTime),
