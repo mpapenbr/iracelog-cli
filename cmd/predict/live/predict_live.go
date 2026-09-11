@@ -113,7 +113,8 @@ func (pr *predictRace) provideParam() (*predictv1.PredictParam, error) {
 	}
 	var resp *predictv1.GetLivePredictParamResponse
 	if resp, err = pr.predictService.GetLivePredictParam(
-		context.Background(), &req); err != nil {
+		context.Background(), &req,
+	); err != nil {
 		log.Error("could not get predict parameter",
 			log.ErrorField(err),
 			log.String("event", pr.event))

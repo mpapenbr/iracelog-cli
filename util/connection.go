@@ -95,7 +95,8 @@ func NewClient(addr string, opts ...Option) (*grpc.ClientConn, error) {
 		log.Debug("TLS disabled")
 		return grpc.NewClient(addr,
 			grpc.WithUnaryInterceptor(
-				cookie.CookieInterceptor(cookie.NewJar(), addr)),
+				cookie.CookieInterceptor(cookie.NewJar(), addr),
+			),
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	log.Debug("TLS enabled")
@@ -128,7 +129,8 @@ func NewClient(addr string, opts ...Option) (*grpc.ClientConn, error) {
 
 	return grpc.NewClient(addr,
 		grpc.WithUnaryInterceptor(
-			cookie.CookieInterceptor(cookie.NewJar(), addr)),
+			cookie.CookieInterceptor(cookie.NewJar(), addr),
+		),
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }
 

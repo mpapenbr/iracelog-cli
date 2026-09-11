@@ -61,7 +61,8 @@ func runTransfer(args []string) {
 	log.Info("connect source server", log.String("addr", sourceAddr))
 	source, err := util.NewClient(
 		sourceAddr,
-		util.WithTLSEnabled(!sourceInsecure))
+		util.WithTLSEnabled(!sourceInsecure),
+	)
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return
@@ -71,7 +72,8 @@ func runTransfer(args []string) {
 	log.Info("connect dest server", log.String("addr", config.DefaultCliArgs().Addr))
 	dest, err := util.NewClient(
 		config.DefaultCliArgs().Addr,
-		util.WithCliArgs(config.DefaultCliArgs()))
+		util.WithCliArgs(config.DefaultCliArgs()),
+	)
 	if err != nil {
 		log.Error("did not connect", log.ErrorField(err))
 		return

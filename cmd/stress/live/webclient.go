@@ -136,7 +136,8 @@ func webclient(ctx context.Context) {
 				opts = append(opts, simulate.WithStatsCallback(
 					config.WorkerProgress, func(s *simulate.Stats) {
 						j.Logger.Info("stats", log.Any("stats", s))
-					}))
+					},
+				))
 			}
 
 			wc := simulate.NewWebclient(opts...)
@@ -206,7 +207,8 @@ func (w *webclientStats) output(numWorkers int) {
 			uint64(totals.Analysis.Bytes+
 				totals.Driver.Bytes+
 				totals.Speedmap.Bytes+
-				totals.State.Bytes))),
+				totals.State.Bytes),
+		)),
 		log.String("totals", totals.String()))
 	for i := range s {
 		if s[i].Analysis.Count == 0 &&

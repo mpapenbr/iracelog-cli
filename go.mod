@@ -1,23 +1,17 @@
 module github.com/mpapenbr/iracelog-cli
 
-go 1.26.0
+go 1.27.0
 
 require (
+	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.6.2-20251019125030-8cb75f92a51d.1
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.12-20251019125030-8cb75f92a51d.1
+	github.com/dustin/go-humanize v1.0.1
+	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.28.0
 	google.golang.org/grpc v1.83.2
-)
-
-require (
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.12-20251019125030-8cb75f92a51d.1
-	github.com/google/uuid v1.6.0
-)
-
-require (
-	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.6.2-20251019125030-8cb75f92a51d.1
-	github.com/dustin/go-humanize v1.0.1
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0

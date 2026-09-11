@@ -435,7 +435,8 @@ func (r *ReplayTask) unregisterEvent() error {
 	}
 	_, err := r.providerService.UnregisterEvent(
 		r.prepOutgoingContext(context.Background()),
-		req)
+		req,
+	)
 	return err
 }
 
