@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	buf.build/gen/go/mpapenbr/iracelog/grpc/go v1.6.2-20251019125030-8cb75f92a51d.1
-	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.12-20251019125030-8cb75f92a51d.1
+	buf.build/gen/go/mpapenbr/iracelog/protocolbuffers/go v1.36.12-20251019125030-8cb75f92a51d.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.10.2
